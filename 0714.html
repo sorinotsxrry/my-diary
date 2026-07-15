@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>다꾸 감성 통합 플래너</title>
+    <style>
+        :root {
+            --bg-color: #f7f6f3; /* 이미지 속 부드러운 크림색 배경 */
+            --card-bg: #ffffff;
+            --text-main: #3c3530; /* 부드러운 다크 브라운 텍스트 */
+            --text-muted: #8a8279;
+            --accent-color: #bfa18f; /* 감성적인 베이지/브라운 포인트 */
+            --border-radius: 24px; /* 이미지처럼 둥글둥글한 모서리 */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', AppleSDGothicNeo-Medium, sans-serif;
+            color: var(--text-main);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            display: flex;
+            height: 100vh;
+            padding: 20px;
+            gap: 20px;
+            overflow: hidden;
+        }
+
+        /* 왼쪽: 다이어리 작성 공간 */
+        .sidebar {
+            width: 380px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .section-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 12px;
+            background: #fdfdfd;
+            border: 1px solid #eae7e4;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent-color);
+            background: #fff;
+        }
+
+        /* 파일 업로드 스타일 커스텀 */
+        .file-uploader {
+            display: block;
+            padding: 15px;
+            background: #fcfbfa;
+            border: 2px dashed #eae7e4;
+            border-radius: 14px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        .file-uploader:hover {
+            background: #f5f2ef;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .preview-container {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .img-preview {
+            max-width: 120px;
+            max-height: 120px;
+            border-radius: 12px;
+            object-fit: cover;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: none;
+        }
+
+        button.btn-save {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--text-main);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        button.btn-save:hover {
+            opacity: 0.9;
+        }
+
+        /* 오른쪽: 메인 캘린더 화면 */
+        .main-content {
+            flex: 1;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .calendar-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .calendar-header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .calendar-header p {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        /* 달력 그리드 */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+            flex: 1;
+        }
+
+        .day-label {
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--text-muted);
+            padding-bottom: 10px;
+        }
+
+        .day-cell {
+            background: #fdfdfd;
+            border: 1px solid #f2effc;
+            border-radius: 18px; /* 이미지 속의 둥근 셀 형태 */
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+            min-height: 90px;
+        }
+
+        .day-cell:hover {
+            background: #f7f5f2;
+            transform: translateY(-2px);
+        }
+
+        .day-cell.today {
+            background: #fffdf9;
+            border: 2px solid var(--accent-color);
+        }
+
+        .day-number {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        /* 달력 칸 안에 들어가는 다꾸 스티커 이미지 */
+        .sticker-img {
+            width: 55px;
+            height: 55px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border: 2px solid #fff; /* 스티커처럼 하얀 테두리 효과 */
+        }
+
+        /* 하단 메모장 래퍼 */
+        .memo-box {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed #eae7e4;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2 class="section-title">Brew & Memory</h2>
+        <p class="section-subtitle" id="selected-date-title">Today, Jul 14, 2026</p>
+
+        <div class="form-group">
+            <label>📸 오늘의 스티커 (음료/음식/동물)</label>
+            <label for="file-input" class="file-uploader" id="upload-label">
+                이곳을 눌러 사진을 올려보세요
+            </label>
+            <input type="file" id="file-input" accept="image/*" onchange="previewImage(event)">
+            <div class="preview-container">
+                <img id="img-preview" class="img-preview" src="">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>📍 장소 / 카페 이름</label>
+            <input type="text" id="diary-place" placeholder="예: 최근맥주, 인천 카페">
+        </div>
+
+        <div class="form-group">
+            <label>☕ 기록 품목 / 메뉴</label>
+            <input type="text" id="diary-menu" placeholder="예: 에티오피아 아아, 아메리카노">
+        </div>
+
+        <div class="form-group">
+            <label>✨ 한 줄 맛평가 / 감정</label>
+            <input type="text" id="diary-taste" placeholder="예: 산뜻, 신맛 / 기분 좋은 하루">
+        </div>
+
+        <div class="form-group">
+            <label>💖 감사 일기 & 메모</label>
+            <textarea id="diary-content" rows="4" placeholder="오늘 하루 감사했던 일이나 기록을 남겨보세요."></textarea>
+        </div>
+
+        <button class="btn-save" onclick="saveData()">다이어리 저장하기</button>
+
+        <div class="memo-box">
+            <label>📌 한 줄 메모장</label>
+            <input type="text" id="quick-memo" placeholder="잊지 말아야 할 메모를 적고 엔터" onkeypress="addQuickMemo(event)">
+            <div id="memo-list" style="font-size: 0.85rem; color: #777; margin-top: 8px; line-height: 1.6;"></div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="calendar-header">
+            <h1>Today</h1>
+            <p>Tue, Jul 14, 2026</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; margin-bottom: 5px;">
+            <div class="day-label">Sun</div>
+            <div class="day-label">Mon</div>
+            <div class="day-label">Tue</div>
+            <div class="day-label">Wed</div>
+            <div class="day-label">Thu</div>
+            <div class="day-label">Fri</div>
+            <div class="day-label">Sat</div>
+        </div>
+
+        <div class="calendar-grid" id="calendar-days"></div>
+    </div>
+
+    <script>
+        let selectedDateStr = "2026-07-14"; // 기본 선택일 (2026년 7월)
+        let base64ImageStr = ""; // 업로드된 이미지를 임시 보관할 변수
+
+        // 로컬스토리지 데이터 로드
+        let plannerData = JSON.parse(localStorage.getItem('plannerData')) || {};
+        let quickMemos = JSON.parse(localStorage.getItem('quickMemos')) || [];
+
+        window.onload = function() {
+            renderCalendar();
+            renderMemos();
+            loadDayData(selectedDateStr);
+        };
+
+        // 이미지 파일 올렸을 때 미리보기 처리 및 저장 준비
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    base64ImageStr = e.target.result;
+                    const preview = document.getElementById('img-preview');
+                    preview.src = base64ImageStr;
+                    preview.style.display = 'inline-block';
+                    document.getElementById('upload-label').innerText = "✅ 사진 선택 완료";
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 달력 그리기 (2026년 7월 기준 고정 예시 형태)
+        function renderCalendar() {
+            const calendarDays = document.getElementById('calendar-days');
+            calendarDays.innerHTML = '';
+
+            // 2026년 7월 1일은 수요일 시작 (앞에 빈칸 3개 필요)
+            for(let i=0; i<3; i++) {
+                const blank = document.createElement('div');
+                blank.style.visibility = 'hidden';
+                calendarDays.appendChild(blank);
+            }
+
+            // 7월은 31일까지 있음
+            for(let day=1; day<=31; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.classList.add('day-cell');
+                
+                const dateStr = `2026-07-${String(day).padStart(2, '0')}`;
+                if(dateStr === "2026-07-14") dayDiv.classList.add('today');
+
+                dayDiv.innerHTML = `<div class="day-number">${day}</div>`;
+
+                // 저장된 사진 스티커가 있다면 달력에 표시!
+                if(plannerData[dateStr] && plannerData[dateStr].image) {
+                    const img = document.createElement('img');
+                    img.src = plannerData[dateStr].image;
+                    img.classList.add('sticker-img');
+                    dayDiv.appendChild(img);
+                }
+
+                // 클릭하면 해당 날짜 데이터 불러오기
+                dayDiv.addEventListener('click', () => {
+                    selectedDateStr = dateStr;
+                    document.getElementById('selected-date-title').innerText = `Selected: 2026년 7월 ${day}일`;
+                    loadDayData(selectedDateStr);
+                });
+
+                calendarDays.appendChild(dayDiv);
+            }
+        }
+
+        // 특정 날짜를 클릭했을 때 입력폼에 데이터 채워넣기
+        function loadDayData(dateStr) {
+            const data = plannerData[dateStr];
+            const preview = document.getElementById('img-preview');
+            
+            if(data) {
+                document.getElementById('diary-place').value = data.place || '';
+                document.getElementById('diary-menu').value = data.menu || '';
+                document.getElementById('diary-taste').value = data.taste || '';
+                document.getElementById('diary-content').value = data.content || '';
+                if(data.image) {
+                    base64ImageStr = data.image;
+                    preview.src = data.image;
+                    preview.style.display = 'inline-block';
+                    document.getElementById('upload-label').innerText = "✅ 등록된 사진 있음";
+                } else {
+                    clearImage();
+                }
+            } else {
+                document.getElementById('diary-place').value = '';
+                document.getElementById('diary-menu').value = '';
+                document.getElementById('diary-taste').value = '';
+                document.getElementById('diary-content').value = '';
+                clearImage();
+            }
+        }
+
+        function clearImage() {
+            base64ImageStr = "";
+            document.getElementById('img-preview').style.display = 'none';
+            document.getElementById('upload-label').innerText = "이곳을 눌러 사진을 올려보세요";
+            document.getElementById('file-input').value = "";
+        }
+
+        // 다이어리 데이터 저장하기
+        function saveData() {
+            plannerData[selectedDateStr] = {
+                image: base64ImageStr,
+                place: document.getElementById('diary-place').value,
+                menu: document.getElementById('diary-menu').value,
+                taste: document.getElementById('diary-taste').value,
+                content: document.getElementById('diary-content').value
+            };
+
+            localStorage.setItem('plannerData', JSON.stringify(plannerData));
+            alert("다이어리가 정상적으로 저장되어 달력에 반영되었습니다! ✨");
+            renderCalendar();
+        }
+
+        // 간단 메모장 기능
+        function addQuickMemo(event) {
+            if(event.key === 'Enter') {
+                const input = document.getElementById('quick-memo');
+                if(input.value.trim() === "") return;
+                
+                quickMemos.push(input.value.trim());
+                localStorage.setItem('quickMemos', JSON.stringify(quickMemos));
+                input.value = "";
+                renderMemos();
+            }
+        }
+
+        function renderMemos() {
+            const list = document.getElementById('memo-list');
+            list.innerHTML = quickMemos.map((m, idx) => `<div>• ${m} <span style="cursor:pointer;color:red;margin-left:5px;" onclick="deleteMemo(${idx})">x</span></div>`).join('');
+        }
+
+        function deleteMemo(idx) {
+            quickMemos.splice(idx, 1);
+            localStorage.setItem('quickMemos', JSON.stringify(quickMemos));
+            renderMemos();
+        }
+    </script>
+</body>
+</html>
