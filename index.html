@@ -2,8 +2,10 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>다꾸 감성 통합 플래너</title>
+    <!-- 구글 감성 아이콘 폰트 로드 -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
     <style>
         :root {
             --bg-color: #f7f6f3; /* 부드러운 크림색 배경 */
@@ -12,6 +14,7 @@
             --text-muted: #8a8279;
             --accent-color: #bfa18f; /* 베이지 포인트 */
             --border-radius: 24px;
+            --nav-bg: #f2f0eb;
         }
 
         * {
@@ -24,29 +27,225 @@
 
         body {
             background-color: var(--bg-color);
-            display: flex;
-            flex-direction: row; /* 기본 PC 레이아웃: 가로 배치 */
             height: 100vh;
-            padding: 20px;
-            gap: 20px;
-            overflow: hidden;
-        }
-
-        /* 왼쪽: 다이어리 작성 공간 */
-        .sidebar {
-            width: 380px;
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
             display: flex;
             flex-direction: column;
-            overflow-y: auto;
-            padding: 30px;
-            flex-shrink: 0;
+            overflow: hidden;
+            position: relative;
         }
 
+        /* 메인 콘텐츠 영역 (탭에 따라 스위칭) */
+        .content-container {
+            flex: 1;
+            padding: 20px 20px 100px 20px; /* 하단 바 공간 확보 */
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .tab-panel {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.03);
+            padding: 25px;
+            display: none; /* 기본적으로 다 숨김 */
+        }
+
+        .tab-panel.active {
+            display: block; /* 활성화된 패널만 노출 */
+        }
+
+        /* 공통 헤더 스타일 */
+        .view-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* --- 1. 달력 탭 스타일 --- */
+        .calendar-header-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header-nav h2 {
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+
+        .btn-nav-month {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .btn-nav-month:hover {
+            background-color: #f1f0ec;
+        }
+
+        /* 드래그 영역 감지 박스 */
+        .calendar-swipe-zone {
+            touch-action: pan-y; /* Y축 스크롤은 유지하고 X축 드래그는 커스텀 처리 */
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .day-label {
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--text-muted);
+            padding-bottom: 8px;
+        }
+
+        .day-cell {
+            background: #fdfdfd;
+            border: 1px solid #f2effc;
+            border-radius: 16px;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            cursor: pointer;
+            aspect-ratio: 1 / 1; 
+            min-height: 50px;
+            position: relative;
+            transition: transform 0.15s, background-color 0.2s;
+        }
+
+        .day-cell:active {
+            transform: scale(0.95);
+        }
+
+        .day-cell.today {
+            border: 2px solid var(--accent-color);
+        }
+
+        .day-number {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 2px;
+        }
+
+        .sticker-img {
+            width: 80%;
+            height: 80%;
+            max-width: 38px;
+            max-height: 38px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* --- 2. 주간 To Do List 탭 스타일 --- */
+        .weekly-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .week-card {
+            background: #fdfdfd;
+            border: 1px solid #f2effc;
+            border-radius: 18px;
+            padding: 15px;
+        }
+
+        .week-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .todo-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .todo-input-group input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #eae7e4;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .todo-input-group button {
+            background: var(--text-main);
+            color: white;
+            border: none;
+            padding: 0 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .todo-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            background: #fcfbfa;
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+
+        .todo-text {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .todo-text.completed {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .todo-delete {
+            cursor: pointer;
+            color: #e57373;
+            font-size: 0.8rem;
+        }
+
+        /* --- 3. 다이어리 기록창 스타일 --- */
         .form-group {
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
 
         .form-group label {
@@ -57,7 +256,6 @@
             margin-bottom: 6px;
         }
 
-        /* 날씨와 온도를 한 줄에 배치 */
         .weather-temp-group {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -84,7 +282,7 @@
             cursor: pointer;
             font-size: 0.85rem;
             color: var(--text-muted);
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         #file-input {
@@ -93,12 +291,12 @@
 
         .preview-container {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .img-preview {
-            max-width: 120px;
-            max-height: 120px;
+            max-width: 100px;
+            max-height: 100px;
             border-radius: 12px;
             object-fit: cover;
             display: none;
@@ -114,223 +312,257 @@
             cursor: pointer;
             font-weight: bold;
             font-size: 0.95rem;
+            margin-top: 10px;
         }
 
-        /* 오른쪽: 메인 캘린더 화면 */
-        .main-content {
-            flex: 1;
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
-            padding: 30px;
+        /* --- 📱 하단 감성 네비게이션 바 --- */
+        .bottom-nav-container {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-
-        .calendar-header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .calendar-header h1 {
-            font-size: 2.2rem;
-            font-weight: 800;
-        }
-
-        .calendar-header p {
-            font-size: 1rem;
-            color: var(--text-muted);
-            margin-top: 5px;
-        }
-
-        /* 달력 그리드 */
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 12px;
-        }
-
-        .day-label {
-            text-align: center;
-            font-size: 0.8rem;
-            font-weight: bold;
-            color: var(--text-muted);
-            padding-bottom: 10px;
-        }
-
-        .day-cell {
-            background: #fdfdfd;
-            border: 1px solid #f2effc;
-            border-radius: 18px;
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+            gap: 12px;
+            z-index: 100;
+            width: 90%;
+            max-width: 360px;
+        }
+
+        .main-nav-bar {
+            flex: 1;
+            height: 64px;
+            background-color: var(--nav-bg);
+            border: 2px solid #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            padding: 4px;
+        }
+
+        .nav-item {
+            flex: 1;
+            height: 100%;
+            border-radius: 28px;
+            border: none;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            aspect-ratio: 1 / 1; 
-            min-height: 60px;
-            position: relative;
-            transition: background-color 0.2s ease;
+            transition: background-color 0.25s ease;
         }
 
-        .day-cell.today {
-            border: 2px solid var(--accent-color);
+        .nav-item.active {
+            background-color: #e5e2db;
         }
 
-        .day-number {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #666;
-            margin-bottom: 2px;
+        .nav-item .material-symbols-rounded {
+            font-size: 26px;
+            color: #706761;
         }
 
-        .sticker-img {
-            width: 80%;
-            height: 80%;
-            max-width: 45px;
-            max-height: 45px;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 1.5px solid #fff;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        .nav-item.active .material-symbols-rounded {
+            color: var(--text-main);
         }
 
-        .memo-box {
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px dashed #eae7e4;
+        .floating-write-btn {
+            width: 64px;
+            height: 64px;
+            background-color: var(--nav-bg);
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s, transform 0.1s;
         }
 
-        /* 모바일 반응형 설정 */
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column; 
-                height: auto;
-                overflow: auto;
-                padding: 10px;
-                gap: 15px;
-            }
+        .floating-write-btn:active {
+            transform: scale(0.95);
+        }
 
-            .sidebar {
-                width: 100%; 
-                order: 2; 
-                padding: 20px;
-                border-radius: 20px;
-            }
+        .floating-write-btn.active {
+            background-color: #e5e2db;
+        }
 
-            .main-content {
-                width: 100%;
-                order: 1; 
-                padding: 20px;
-                border-radius: 20px;
-            }
-
-            .calendar-header h1 {
-                font-size: 1.8rem;
-            }
-
-            .calendar-grid {
-                gap: 6px; 
-            }
-
-            .day-cell {
-                padding: 4px;
-            }
-
-            .day-number {
-                font-size: 0.75rem;
-            }
+        .floating-write-btn .material-symbols-rounded {
+            font-size: 24px;
+            color: #706761;
         }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="form-group">
-            <label>📸 오늘의 스티커</label>
-            <label for="file-input" class="file-uploader" id="upload-label">
-                이곳을 눌러 사진을 올려보세요
-            </label>
-            <input type="file" id="file-input" accept="image/*" onchange="previewImage(event)">
-            <div class="preview-container">
-                <img id="img-preview" class="img-preview" src="">
+    <div class="content-container">
+
+        <!-- 📅 [탭 1] 만년 달력 화면 (좌우 드래그 스와이프 지원) -->
+        <div id="panel-calendar" class="tab-panel active">
+            <div class="calendar-header-nav">
+                <button class="btn-nav-month" onclick="changeMonth(-1)">
+                    <span class="material-symbols-rounded">chevron_left</span>
+                </button>
+                <h2 id="calendar-title">July 2026</h2>
+                <button class="btn-nav-month" onclick="changeMonth(1)">
+                    <span class="material-symbols-rounded">chevron_right</span>
+                </button>
+            </div>
+            
+            <div class="calendar-swipe-zone" id="swipe-area">
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 5px; text-align: center;">
+                    <div class="day-label" style="color: #e57373;">Sun</div>
+                    <div class="day-label">Mon</div>
+                    <div class="day-label">Tue</div>
+                    <div class="day-label">Wed</div>
+                    <div class="day-label">Thu</div>
+                    <div class="day-label">Fri</div>
+                    <div class="day-label" style="color: #64b5f6;">Sat</div>
+                </div>
+                <div class="calendar-grid" id="calendar-days"></div>
             </div>
         </div>
 
-        <div class="form-group weather-temp-group">
-            <div>
-                <label>☀️ 날씨</label>
-                <select id="diary-weather">
-                    <option value="☀️ 맑음">☀️ 맑음</option>
-                    <option value="☁️ 흐림">☁️ 흐림</option>
-                    <option value="🌧️ 비">🌧️ 비</option>
-                    <option value="❄️ 눈">❄️ 눈</option>
+        <!-- ✅ [탭 2] 주간 To-Do List 화면 -->
+        <div id="panel-todo" class="tab-panel">
+            <div class="view-title">
+                <span class="material-symbols-rounded">checklist</span>
+                Weekly To Do List
+            </div>
+            <div class="weekly-container">
+                <div class="week-card">
+                    <div class="week-title"><span class="material-symbols-rounded">event_note</span>1주 차</div>
+                    <div class="todo-input-group">
+                        <input type="text" id="input-week1" placeholder="할 일을 입력하세요...">
+                        <button onclick="addTodo(1)">추가</button>
+                    </div>
+                    <ul class="todo-list" id="list-week1"></ul>
+                </div>
+                <div class="week-card">
+                    <div class="week-title"><span class="material-symbols-rounded">event_note</span>2주 차</div>
+                    <div class="todo-input-group">
+                        <input type="text" id="input-week2" placeholder="할 일을 입력하세요...">
+                        <button onclick="addTodo(2)">추가</button>
+                    </div>
+                    <ul class="todo-list" id="list-week2"></ul>
+                </div>
+                <div class="week-card">
+                    <div class="week-title"><span class="material-symbols-rounded">event_note</span>3주 차</div>
+                    <div class="todo-input-group">
+                        <input type="text" id="input-week3" placeholder="할 일을 입력하세요...">
+                        <button onclick="addTodo(3)">추가</button>
+                    </div>
+                    <ul class="todo-list" id="list-week3"></ul>
+                </div>
+                <div class="week-card">
+                    <div class="week-title"><span class="material-symbols-rounded">event_note</span>4주 차</div>
+                    <div class="todo-input-group">
+                        <input type="text" id="input-week4" placeholder="할 일을 입력하세요...">
+                        <button onclick="addTodo(4)">추가</button>
+                    </div>
+                    <ul class="todo-list" id="list-week4"></ul>
+                </div>
+                <div class="week-card">
+                    <div class="week-title"><span class="material-symbols-rounded">event_note</span>5주 차</div>
+                    <div class="todo-input-group">
+                        <input type="text" id="input-week5" placeholder="할 일을 입력하세요...">
+                        <button onclick="addTodo(5)">추가</button>
+                    </div>
+                    <ul class="todo-list" id="list-week5"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ✒️ [탭 3] 다이어리 기록 입력 화면 -->
+        <div id="panel-write" class="tab-panel">
+            <div class="view-title" id="write-view-title" style="font-size: 1.2rem; color: var(--accent-color);">
+                기록하기
+            </div>
+
+            <!-- 날씨 & 온도 -->
+            <div class="form-group weather-temp-group">
+                <div>
+                    <label>☀️ 날씨</label>
+                    <select id="diary-weather">
+                        <option value="☀️ 맑음">☀️ 맑음</option>
+                        <option value="☁️ 흐림">☁️ 흐림</option>
+                        <option value="🌧️ 비">🌧️ 비</option>
+                        <option value="❄️ 눈">❄️ 눈</option>
+                    </select>
+                </div>
+                <div>
+                    <label>🌡️ 온도 (°C)</label>
+                    <input type="number" id="diary-temp" placeholder="예: 24">
+                </div>
+            </div>
+
+            <!-- 스티커 업로드 -->
+            <div class="form-group">
+                <label>📸 오늘의 스티커</label>
+                <label for="file-input" class="file-uploader" id="upload-label">
+                    이곳을 눌러 사진을 올려보세요
+                </label>
+                <input type="file" id="file-input" accept="image/*" onchange="previewImage(event)">
+                <div class="preview-container">
+                    <img id="img-preview" class="img-preview" src="">
+                </div>
+            </div>
+
+            <!-- 장소 -->
+            <div class="form-group">
+                <label>📍 장소</label>
+                <input type="text" id="diary-place" placeholder="예: 어린이대공원, 00카페">
+            </div>
+
+            <!-- 감정 -->
+            <div class="form-group">
+                <label>🥰 감정</label>
+                <select id="diary-emotion">
+                    <option value="즐거움">즐거움 (연주황)</option>
+                    <option value="평온">평온 (연연두)</option>
+                    <option value="슬픔">슬픔 (연하늘)</option>
+                    <option value="분노">분노 (연분홍)</option>
                 </select>
             </div>
-            <div>
-                <label>🌡️ 온도 (°C)</label>
-                <input type="number" id="diary-temp" placeholder="예: 24">
+
+            <!-- 본문 -->
+            <div class="form-group">
+                <label>💖 감사 일기 & 메모</label>
+                <textarea id="diary-content" rows="6" placeholder="오늘 하루 감사했던 일이나 기록을 남겨보세요."></textarea>
             </div>
+
+            <button class="btn-save" onclick="saveData()">다이어리 저장하기</button>
         </div>
 
-        <div class="form-group">
-            <label>📍 장소</label>
-            <input type="text" id="diary-place" placeholder="예: 어린이대공원, 00카페">
-        </div>
-
-        <div class="form-group">
-            <label>🥰 감정</label>
-            <select id="diary-emotion">
-                <option value="즐거움">즐거움 (연주황)</option>
-                <option value="평온">평온 (연연두)</option>
-                <option value="슬픔">슬픔 (연하늘)</option>
-                <option value="분노">분노 (연분홍)</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>💖 감사 일기 & 메모</label>
-            <textarea id="diary-content" rows="5" placeholder="오늘 하루 감사했던 일이나 기록을 남겨보세요."></textarea>
-        </div>
-
-        <button class="btn-save" onclick="saveData()">다이어리 저장하기</button>
-
-        <div class="memo-box">
-            <label>📌 한 줄 메모장</label>
-            <input type="text" id="quick-memo" placeholder="잊지 말아야 할 메모를 적고 엔터" onkeypress="addQuickMemo(event)">
-            <div id="memo-list" style="font-size: 0.85rem; color: #777; margin-top: 8px; line-height: 1.6;"></div>
-        </div>
     </div>
 
-    <div class="main-content">
-        <div class="calendar-header">
-            <h1>Today</h1>
-            <p>Wed, Jul 15, 2026</p>
+    <!-- 📱 하단 감성 네비게이션 바 -->
+    <div class="bottom-nav-container">
+        <div class="main-nav-bar">
+            <button class="nav-item active" onclick="switchTab('calendar', this)">
+                <span class="material-symbols-rounded">calendar_month</span>
+            </button>
+            <button class="nav-item" onclick="switchTab('todo', this)">
+                <span class="material-symbols-rounded">fact_check</span>
+            </button>
         </div>
-
-        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; margin-bottom: 5px; text-align: center;">
-            <div class="day-label">Sun</div>
-            <div class="day-label">Mon</div>
-            <div class="day-label">Tue</div>
-            <div class="day-label">Wed</div>
-            <div class="day-label">Thu</div>
-            <div class="day-label">Fri</div>
-            <div class="day-label">Sat</div>
-        </div>
-
-        <div class="calendar-grid" id="calendar-days"></div>
+        <button class="floating-write-btn" id="write-nav-btn" onclick="switchTab('write', this)">
+            <span class="material-symbols-rounded">edit_note</span>
+        </button>
     </div>
 
     <script>
+        // 🗓️ [만년달력 핵심 로직] 캘린더 전역 변수 설정
+        let currentDate = new Date(2026, 6, 15); // 2026년 7월 15일 기본값 설정 (7월은 index 6)
         let selectedDateStr = "2026-07-15"; 
         let base64ImageStr = ""; 
 
         let plannerData = JSON.parse(localStorage.getItem('plannerData')) || {};
-        let quickMemos = JSON.parse(localStorage.getItem('quickMemos')) || [];
+        let todoData = JSON.parse(localStorage.getItem('todoData')) || { 1: [], 2: [], 3: [], 4: [], 5: [] };
 
-        // 감정별 배경색 컬러 맵 (파스텔톤)
         const emotionColors = {
             '즐거움': '#ffe8cc', // 연주황
             '평온': '#e2f6e2',   // 연연두
@@ -340,10 +572,137 @@
 
         window.onload = function() {
             renderCalendar();
-            renderMemos();
+            renderAllTodos();
             loadDayData(selectedDateStr);
+            updateWriteTitle();
+            initSwipeEvents(); // 스와이프 리스너 초기화
         };
 
+        // 탭 스위칭 매커니즘
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('write-nav-btn').classList.remove('active');
+
+            document.getElementById(`panel-${tabId}`).classList.add('active');
+
+            if(btnElement) {
+                btnElement.classList.add('active');
+            }
+        }
+
+        // 선택된 일자의 타이틀 업데이트
+        function updateWriteTitle() {
+            const parts = selectedDateStr.split('-');
+            const year = parseInt(parts[0]);
+            const month = parseInt(parts[1]);
+            const day = parseInt(parts[2]);
+            document.getElementById('write-view-title').innerHTML = `
+                <span class="material-symbols-rounded" style="font-size: 18px; vertical-align: middle;">edit_calendar</span>
+                ${year}년 ${month}월 ${day}일 기록하기
+            `;
+        }
+
+        // 🗓️ 동적으로 만년달력 그리는 기능
+        function renderCalendar() {
+            const calendarDays = document.getElementById('calendar-days');
+            calendarDays.innerHTML = '';
+
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth(); // 0 ~ 11
+
+            // 캘린더 상단 제목 업데이트 (영어 형식)
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            document.getElementById('calendar-title').innerText = `${monthNames[month]} ${year}`;
+
+            // 해당 월의 첫 날과 마지막 날 계산
+            const firstDayIndex = new Date(year, month, 1).getDay(); // 시작 요일 인덱스
+            const totalDays = new Date(year, month + 1, 0).getDate(); // 해당 월의 총 일수
+
+            // 빈칸 채우기
+            for (let i = 0; i < firstDayIndex; i++) {
+                const blank = document.createElement('div');
+                blank.style.visibility = 'hidden';
+                calendarDays.appendChild(blank);
+            }
+
+            // 요일 정보에 맞추어 일자 셀 렌더링
+            for (let day = 1; day <= totalDays; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.classList.add('day-cell');
+                
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                // 오늘 날짜 하이라이트 (시스템 오늘 날짜 매칭)
+                const sysToday = new Date();
+                if (sysToday.getFullYear() === year && sysToday.getMonth() === month && sysToday.getDate() === day) {
+                    dayDiv.classList.add('today');
+                }
+
+                dayDiv.innerHTML = `<div class="day-number">${day}</div>`;
+
+                // 로컬 스토리지에 이 날짜 기록이 있는지 검색
+                if (plannerData[dateStr]) {
+                    const emotion = plannerData[dateStr].emotion;
+                    if (emotion && emotionColors[emotion]) {
+                        dayDiv.style.backgroundColor = emotionColors[emotion];
+                    }
+                    
+                    if (plannerData[dateStr].image) {
+                        const img = document.createElement('img');
+                        img.src = plannerData[dateStr].image;
+                        img.classList.add('sticker-img');
+                        dayDiv.appendChild(img);
+                    }
+                }
+
+                // 날짜 터치/클릭 이벤트
+                dayDiv.addEventListener('click', () => {
+                    selectedDateStr = dateStr;
+                    updateWriteTitle();
+                    loadDayData(selectedDateStr);
+                    switchTab('write', document.getElementById('write-nav-btn'));
+                });
+
+                calendarDays.appendChild(dayDiv);
+            }
+        }
+
+        // 월 변경 처리 (화살표 버튼 혹은 스와이프 시 호출)
+        function changeMonth(direction) {
+            currentDate.setMonth(currentDate.getMonth() + direction);
+            renderCalendar();
+        }
+
+        // ↔️ 모바일 화면용 좌우 스와이프 드래그 인식 시스템
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        function initSwipeEvents() {
+            const swipeArea = document.getElementById('swipe-area');
+
+            swipeArea.addEventListener('touchstart', function(e) {
+                touchStartX = e.changedTouches[0].screenX;
+            }, false);
+
+            swipeArea.addEventListener('touchend', function(e) {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, false);
+        }
+
+        function handleSwipe() {
+            const threshold = 60; // 최소 드래그 길이 인식값 (픽셀)
+            if (touchStartX - touchEndX > threshold) {
+                // 오른쪽에서 왼쪽으로 스와이프 ➡️ 다음 달로 이동
+                changeMonth(1);
+            } else if (touchEndX - touchStartX > threshold) {
+                // 왼쪽에서 오른쪽으로 스와이프 ➡️ 이전 달로 이동
+                changeMonth(-1);
+            }
+        }
+
+        // 이미지 미리보기 업로드
         function previewImage(event) {
             const file = event.target.files[0];
             if (file) {
@@ -359,67 +718,18 @@
             }
         }
 
-        function renderCalendar() {
-            const calendarDays = document.getElementById('calendar-days');
-            calendarDays.innerHTML = '';
-
-            for(let i=0; i<3; i++) {
-                const blank = document.createElement('div');
-                blank.style.visibility = 'hidden';
-                calendarDays.appendChild(blank);
-            }
-
-            for(let day=1; day<=31; day++) {
-                const dayDiv = document.createElement('div');
-                dayDiv.classList.add('day-cell');
-                
-                const dateStr = `2026-07-${String(day).padStart(2, '0')}`;
-                if(dateStr === "2026-07-15") dayDiv.classList.add('today');
-
-                dayDiv.innerHTML = `<div class="day-number">${day}</div>`;
-
-                // 기록된 감정이 있으면 일자 칸 배경색 바꾸기
-                if(plannerData[dateStr]) {
-                    const emotion = plannerData[dateStr].emotion;
-                    if(emotion && emotionColors[emotion]) {
-                        dayDiv.style.backgroundColor = emotionColors[emotion];
-                    }
-                    
-                    // 사진 스티커가 있다면 달력에 표시!
-                    if(plannerData[dateStr].image) {
-                        const img = document.createElement('img');
-                        img.src = plannerData[dateStr].image;
-                        img.classList.add('sticker-img');
-                        dayDiv.appendChild(img);
-                    }
-                }
-
-                dayDiv.addEventListener('click', () => {
-                    selectedDateStr = dateStr;
-                    // 메인 화면의 일 선택자 정보를 업데이트해줍니다.
-                    document.querySelector('.calendar-header p').innerText = `Selected: 2026년 7월 ${day}일`;
-                    loadDayData(selectedDateStr);
-                    
-                    if(window.innerWidth <= 768) {
-                        document.querySelector('.sidebar').scrollIntoView({ behavior: 'smooth' });
-                    }
-                });
-
-                calendarDays.appendChild(dayDiv);
-            }
-        }
-
+        // 특정 날짜 다이어리 불러오기
         function loadDayData(dateStr) {
             const data = plannerData[dateStr];
             const preview = document.getElementById('img-preview');
             
-            if(data) {
+            if (data) {
                 document.getElementById('diary-weather').value = data.weather || '☀️ 맑음';
                 document.getElementById('diary-temp').value = data.temp || '';
                 document.getElementById('diary-place').value = data.place || '';
                 document.getElementById('diary-emotion').value = data.emotion || '즐거움';
                 document.getElementById('diary-content').value = data.content || '';
-                if(data.image) {
+                if (data.image) {
                     base64ImageStr = data.image;
                     preview.src = data.image;
                     preview.style.display = 'inline-block';
@@ -444,6 +754,7 @@
             document.getElementById('file-input').value = "";
         }
 
+        // 다이어리 저장
         function saveData() {
             plannerData[selectedDateStr] = {
                 image: base64ImageStr,
@@ -457,29 +768,58 @@
             localStorage.setItem('plannerData', JSON.stringify(plannerData));
             alert("다이어리가 정상적으로 저장되어 달력에 반영되었습니다! ✨");
             renderCalendar();
+            switchTab('calendar', document.querySelector('.nav-item'));
         }
 
-        function addQuickMemo(event) {
-            if(event.key === 'Enter') {
-                const input = document.getElementById('quick-memo');
-                if(input.value.trim() === "") return;
-                
-                quickMemos.push(input.value.trim());
-                localStorage.setItem('quickMemos', JSON.stringify(quickMemos));
-                input.value = "";
-                renderMemos();
+        /* --- To Do List 로직 --- */
+        function addTodo(weekNum) {
+            const input = document.getElementById(`input-week${weekNum}`);
+            const text = input.value.trim();
+            if(!text) return;
+
+            todoData[weekNum].push({ text: text, completed: false });
+            localStorage.setItem('todoData', JSON.stringify(todoData));
+            input.value = '';
+            renderTodosByWeek(weekNum);
+        }
+
+        function renderAllTodos() {
+            for(let i = 1; i <= 5; i++) {
+                renderTodosByWeek(i);
             }
         }
 
-        function renderMemos() {
-            const list = document.getElementById('memo-list');
-            list.innerHTML = quickMemos.map((m, idx) => `<div>• ${m} <span style="cursor:pointer;color:red;margin-left:5px;" onclick="deleteMemo(${idx})">x</span></div>`).join('');
+        function renderTodosByWeek(weekNum) {
+            const listEl = document.getElementById(`list-week${weekNum}`);
+            listEl.innerHTML = '';
+
+            const items = todoData[weekNum] || [];
+            items.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.classList.add('todo-item');
+                li.innerHTML = `
+                    <div class="todo-text ${item.completed ? 'completed' : ''}" onclick="toggleTodo(${weekNum}, ${index})">
+                        <span class="material-symbols-rounded" style="font-size: 18px;">
+                            ${item.completed ? 'check_box' : 'check_box_outline_blank'}
+                        </span>
+                        <span>${item.text}</span>
+                    </div>
+                    <span class="material-symbols-rounded todo-delete" onclick="deleteTodo(${weekNum}, ${index})">delete</span>
+                `;
+                listEl.appendChild(li);
+            });
         }
 
-        function deleteMemo(idx) {
-            quickMemos.splice(idx, 1);
-            localStorage.setItem('quickMemos', JSON.stringify(quickMemos));
-            renderMemos();
+        function toggleTodo(weekNum, index) {
+            todoData[weekNum][index].completed = !todoData[weekNum][index].completed;
+            localStorage.setItem('todoData', JSON.stringify(todoData));
+            renderTodosByWeek(weekNum);
+        }
+
+        function deleteTodo(weekNum, index) {
+            todoData[weekNum].splice(index, 1);
+            localStorage.setItem('todoData', JSON.stringify(todoData));
+            renderTodosByWeek(weekNum);
         }
     </script>
 </body>
