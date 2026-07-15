@@ -40,7 +40,7 @@
         /* 메인 콘텐츠 영역 (탭에 따라 스위칭) */
         .content-container {
             flex: 1;
-            padding: 15px 15px 100px 15px; /* 모바일에서 쏠리지 않도록 패딩 간격 미세 조정 */
+            padding: 15px 15px 100px 15px; /* 모바일 가로 쏠림 현상 해결용 패딩 가이드 */
             overflow-y: auto;
             display: flex;
             justify-content: center;
@@ -73,7 +73,7 @@
             gap: 8px;
         }
 
-        /* --- 1. 달력 탭 스타일 (오른쪽 치우침 방지 반응형 가로 폭 세팅) --- */
+        /* --- 1. 달력 탭 스타일 (오른쪽 치우침 방지 및 반응형 비율 완벽 대응) --- */
         .calendar-header-nav {
             display: flex;
             align-items: center;
@@ -108,7 +108,7 @@
             width: 100%;
         }
 
-        /* [핵심] 달력이 좌우 쏠림 없이 100% 가득 균등 분배되게 조정 */
+        /* 달력이 좌우 쏠림 없이 가로폭 100% 균등 분할 */
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -124,20 +124,21 @@
             padding-bottom: 8px;
         }
 
-        /* 달력 셀의 크기 비율이 넘치지 않도록 강제 제한 */
+        /* [요청반영] 달력 칸 높이 세로로 길쭉하게 키우기 (기존 1:1에서 1:1.3 세로형 비율로 변경) */
         .day-cell {
             background: #fdfdfd;
             border: 1px solid #f2effc;
-            border-radius: 14px;
-            padding: 4px;
+            border-radius: 16px;
+            padding: 6px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
             cursor: pointer;
-            aspect-ratio: 1 / 1; 
+            aspect-ratio: 1 / 1.3; 
             width: 100%;
             position: relative;
+            overflow: hidden; /* 이미지 오버헤드 찌그러짐 방지 */
             transition: transform 0.15s, background-color 0.2s;
         }
 
@@ -154,18 +155,36 @@
             font-weight: 600;
             color: #666;
             margin-bottom: 2px;
+            align-self: flex-start; /* 날짜 숫자는 좌측 상단에 단정하게 안착 */
         }
 
-        /* 📸 달력 안 스티커 디자인 */
+        /* [핵심 요청 반영] 🤩 진짜 띠부띠부씰 느낌의 누끼 딴 스티커 렌더러 구현 */
+        .sticker-img-container {
+            position: absolute;
+            bottom: 4px; /* 아래쪽에 예쁘게 얹혀지도록 배치 */
+            width: 86%;
+            height: 68%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .sticker-img {
-            width: 80%;
-            height: 80%;
-            max-width: 34px;
-            max-height: 34px;
-            object-fit: cover;
-            border-radius: 50%; /* 스티커처럼 둥글게 처리 */
-            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-            border: 2px solid white; /* 스티커 테두리 효과 */
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* 이미지 비율 찌그러짐 원천 차단! */
+            
+            /* [띠부띠부씰 필터 기법] 투명 배경을 가진 누끼 이미지 외곽선을 따라 하얀 테두리와 부드러운 그림자를 더합니다. */
+            filter: 
+                drop-shadow(1.5px 0 0 #ffffff) 
+                drop-shadow(-1.5px 0 0 #ffffff) 
+                drop-shadow(0 1.5px 0 #ffffff) 
+                drop-shadow(0 -1.5px 0 #ffffff)
+                drop-shadow(1px 1px 0 #ffffff)
+                drop-shadow(-1px -1px 0 #ffffff)
+                drop-shadow(1px -1px 0 #ffffff)
+                drop-shadow(-1px 1px 0 #ffffff)
+                drop-shadow(0px 3px 5px rgba(0,0,0,0.18)); /* 스티커처럼 붕 뜨는 감성 입체 그림자 */
         }
 
         /* --- 2. 주간 To Do List 탭 스타일 --- */
@@ -337,7 +356,7 @@
             margin-top: 15px;
         }
 
-        /* --- 📚 Book List 스타일 (버튼 디자인 & 위치 전면 수정) --- */
+        /* --- 📚 Book List 스타일 (버튼 디자인 & 위치 전면 수정 보존) --- */
         .book-top-layout {
             display: flex;
             flex-direction: column;
@@ -961,7 +980,7 @@
             </div>
 
             <div class="form-group">
-                <label>📸 오늘의 스티커 (자동 용량 최적화 적용)</label>
+                <label>📸 오늘의 띠부띠부 스티커 (누끼 이미지 추천)</label>
                 <label for="file-input" class="file-uploader" id="upload-label">
                     이곳을 눌러 사진을 올려보세요
                 </label>
@@ -973,7 +992,7 @@
 
             <div class="form-group">
                 <label>📍 장소</label>
-                <input type="text" id="diary-place" placeholder="예: 어린이대공원, 인천 카페">
+                <input type="text" id="diary-place" placeholder="예: 인천 맛집">
             </div>
 
             <div class="form-group">
@@ -1107,18 +1126,17 @@
     </div>
 
     <script>
-        // 전역 날짜 기본 세팅 (오늘 기준으로 2026-07-15 백업)
+        // 전역 날짜 기본 세팅
         let currentDate = new Date(2026, 6, 15); 
         let selectedDateStr = "2026-07-15"; 
         let base64ImageStr = ""; 
-        let bookCoverBase64 = ""; // 책 표지 임시 저장용
-        let activeBookView = "list"; // 'list' or 'gallery'
+        let bookCoverBase64 = ""; 
+        let activeBookView = "list"; 
 
         let plannerData = JSON.parse(localStorage.getItem('plannerData')) || {};
         let weeklyTodoData = JSON.parse(localStorage.getItem('weeklyTodoData')) || {};
         let bookListData = JSON.parse(localStorage.getItem('bookListData')) || [];
 
-        // 오늘 날짜로 책 등록 날짜 입력란 세팅
         document.getElementById('book-start-date').value = "2026-07-15";
         document.getElementById('book-end-date').value = "2026-07-15";
 
@@ -1204,11 +1222,17 @@
                         dayDiv.style.backgroundColor = emotionColors[emotion];
                     }
                     
+                    // [띠부띠부씰 방식 렌더링] 원형이 아니라 사진의 형태를 유지하여 배치
                     if (plannerData[dateStr].image) {
+                        const imgContainer = document.createElement('div');
+                        imgContainer.classList.add('sticker-img-container');
+
                         const img = document.createElement('img');
                         img.src = plannerData[dateStr].image;
                         img.classList.add('sticker-img');
-                        dayDiv.appendChild(img);
+
+                        imgContainer.appendChild(img);
+                        dayDiv.appendChild(imgContainer);
                     }
                 }
 
@@ -1286,7 +1310,8 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                    // 누끼 이미지(PNG 등)의 투명도 정보를 손상하지 않도록 포맷을 'image/png'로 압축
+                    const compressedBase64 = canvas.toDataURL('image/png');
                     callback(compressedBase64);
                 };
                 img.src = e.target.result;
@@ -1298,13 +1323,13 @@
         function previewImageAndResize(event) {
             const file = event.target.files[0];
             if (file) {
-                document.getElementById('upload-label').innerText = "⚡ 사진 최적화 중...";
+                document.getElementById('upload-label').innerText = "⚡ 띠부띠부 최적화 중...";
                 resizeImage(file, 300, function(compressedBase64) {
                     base64ImageStr = compressedBase64;
                     const preview = document.getElementById('img-preview');
                     preview.src = base64ImageStr;
                     preview.style.display = 'inline-block';
-                    document.getElementById('upload-label').innerText = "✅ 스티커 업로드 완료";
+                    document.getElementById('upload-label').innerText = "✅ 띠부띠부 스티커 장착 완료";
                 });
             }
         }
@@ -1338,7 +1363,7 @@
                     base64ImageStr = data.image;
                     preview.src = data.image;
                     preview.style.display = 'inline-block';
-                    document.getElementById('upload-label').innerText = "✅ 등록된 사진 있음";
+                    document.getElementById('upload-label').innerText = "✅ 등록된 띠부띠부씰 있음";
                 } else {
                     clearImage();
                 }
