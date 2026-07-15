@@ -99,7 +99,7 @@
         }
 
         /* 드래그 영역 감지 박스 */
-        .calendar-swipe-zone {
+        .calendar-swipe-zone, .weekly-swipe-zone {
             touch-action: pan-y; /* Y축 스크롤은 유지하고 X축 드래그는 커스텀 처리 */
         }
 
@@ -201,10 +201,14 @@
             background: var(--text-main);
             color: white;
             border: none;
-            padding: 0 15px;
+            padding: 0 16px;
             border-radius: 10px;
             font-weight: bold;
+            font-size: 1.1rem;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .todo-list {
@@ -424,7 +428,7 @@
                 </button>
             </div>
             
-            <div class="calendar-swipe-zone" id="swipe-area">
+            <div class="calendar-swipe-zone" id="swipe-area-calendar">
                 <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 5px; text-align: center;">
                     <div class="day-label" style="color: #e57373;">Sun</div>
                     <div class="day-label">Mon</div>
@@ -443,8 +447,10 @@
                 <span class="material-symbols-rounded">checklist</span>
                 Weekly To Do List
             </div>
-            <div class="weekly-container" id="weekly-todo-container">
-                </div>
+            <div class="weekly-swipe-zone" id="swipe-area-weekly">
+                <div class="weekly-container" id="weekly-todo-container">
+                    </div>
+            </div>
         </div>
 
         <div id="panel-write" class="tab-panel">
@@ -508,7 +514,7 @@
                 <div class="daily-todo-container">
                     <div class="todo-input-group">
                         <input type="text" id="daily-todo-input" placeholder="오늘 할 일을 입력하세요...">
-                        <button onclick="addDailyTodo()">추가</button>
+                        <button onclick="addDailyTodo()">+</button>
                     </div>
                     <ul class="todo-list" id="daily-todo-list"></ul>
                 </div>
@@ -534,15 +540,15 @@
     </div>
 
     <script>
-        // 🗓️ 캘린더 전역 변수 설정
-        let currentDate = new Date(2026, 6, 15); // 2026년 7월 15일 기본값 설정 (7월은 index 6)
+        // 🗓️ 캘린더 전역 변수 설정 (현재 디바이스의 '오늘' 기준으로 동적 세팅도 가능하지만, 2026-07-15 타겟 기본값 유지)
+        let currentDate = new Date(2026, 6, 15); 
         let selectedDateStr = "2026-07-15"; 
         let base64ImageStr = ""; 
 
         let plannerData = JSON.parse(localStorage.getItem('plannerData')) || {};
         let weeklyTodoData = JSON.parse(localStorage.getItem('weeklyTodoData')) || {};
 
-        // 🎨 요청해주신 8가지 감정과 파스텔 배경색 매핑 테이블
+        // 🎨 요청된 8가지 감정과 파스텔 배경색 매핑 테이블
         const emotionColors = {
             '평온': '#e2f6e2',      // 연두색
             '기쁨': '#fff9db',      // 노란색
@@ -575,15 +581,21 @@
             }
         }
 
-        // 선택된 일자의 타이틀 업데이트
+        // 선택된 일자의 타이틀 업데이트 (년도 제외하고 '월 일 요일' 형식으로 변경)
         function updateWriteTitle() {
             const parts = selectedDateStr.split('-');
             const year = parseInt(parts[0]);
             const month = parseInt(parts[1]);
             const day = parseInt(parts[2]);
+            
+            // 요일 구하기
+            const daysOfWeek = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+            const dateObj = new Date(year, month - 1, day);
+            const dayName = daysOfWeek[dateObj.getDay()];
+
             document.getElementById('write-view-title').innerHTML = `
                 <span class="material-symbols-rounded" style="font-size: 18px; vertical-align: middle;">edit_calendar</span>
-                ${year}년 ${month}월 ${day}일 기록하기
+                ${month}월 ${day}일 ${dayName} 기록하기
             `;
         }
 
@@ -620,7 +632,6 @@
 
                 dayDiv.innerHTML = `<div class="day-number">${day}</div>`;
 
-                // 저장된 다이어리의 감정에 연동하여 파스텔 배경색 표시
                 if (plannerData[dateStr]) {
                     const emotion = plannerData[dateStr].emotion;
                     if (emotion && emotionColors[emotion]) {
@@ -653,30 +664,31 @@
             renderCalendar();
         }
 
-        // ↔️ 좌우 드래그 스와이프 리스너
-        let touchStartX = 0;
-        let touchEndX = 0;
-
+        // ↔️ 모바일 화면용 좌우 드래그 스와이프 (달력과 주간 탭 둘 다 처리 가능하게 바인딩)
         function initSwipeEvents() {
-            const swipeArea = document.getElementById('swipe-area');
+            setupSwipe('swipe-area-calendar');
+            setupSwipe('swipe-area-weekly');
+        }
+
+        function setupSwipe(elementId) {
+            const swipeArea = document.getElementById(elementId);
+            let touchStartX = 0;
+            let touchEndX = 0;
 
             swipeArea.addEventListener('touchstart', function(e) {
                 touchStartX = e.changedTouches[0].screenX;
-            }, false);
+            }, { passive: true });
 
             swipeArea.addEventListener('touchend', function(e) {
                 touchEndX = e.changedTouches[0].screenX;
-                handleSwipe();
-            }, false);
-        }
-
-        function handleSwipe() {
-            const threshold = 60;
-            if (touchStartX - touchEndX > threshold) {
-                changeMonth(1); // 다음달
-            } else if (touchEndX - touchStartX > threshold) {
-                changeMonth(-1); // 이전달
-            }
+                
+                const threshold = 60; // 드래그 길이 인식값
+                if (touchStartX - touchEndX > threshold) {
+                    changeMonth(1);  // 다음달로
+                } else if (touchEndX - touchStartX > threshold) {
+                    changeMonth(-1); // 이전달로
+                }
+            }, { passive: true });
         }
 
         // 이미지 미리보기 업로드
@@ -795,7 +807,6 @@
 
             weeks.forEach(w => {
                 const storageKey = `${year}-${monthNum}-W${w.weekIndex}`;
-                const items = weeklyTodoData[storageKey] || [];
 
                 const card = document.createElement('div');
                 card.classList.add('week-card');
@@ -806,7 +817,7 @@
                     </div>
                     <div class="todo-input-group">
                         <input type="text" id="input-week-${w.weekIndex}" placeholder="할 일을 입력하세요...">
-                        <button onclick="addWeeklyTodo('${storageKey}', ${w.weekIndex})">추가</button>
+                        <button onclick="addWeeklyTodo('${storageKey}', ${w.weekIndex})">+</button>
                     </div>
                     <ul class="todo-list" id="list-week-${w.weekIndex}"></ul>
                 `;
