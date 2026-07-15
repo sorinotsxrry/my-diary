@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>다꾸 감성 통합 플래너</title>
-    <!-- 구글 감성 아이콘 폰트 로드 -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
     <style>
         :root {
@@ -302,6 +301,15 @@
             display: none;
         }
 
+        /* 일일 To Do List 스타일 */
+        .daily-todo-container {
+            border: 1px solid #eae7e4;
+            border-radius: 14px;
+            padding: 12px;
+            background: #fdfdfd;
+            margin-top: 5px;
+        }
+
         button.btn-save {
             width: 100%;
             padding: 14px;
@@ -312,7 +320,7 @@
             cursor: pointer;
             font-weight: bold;
             font-size: 0.95rem;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
         /* --- 📱 하단 감성 네비게이션 바 --- */
@@ -391,8 +399,13 @@
         }
 
         .floating-write-btn .material-symbols-rounded {
-            font-size: 24px;
+            font-size: 26px;
             color: #706761;
+            font-variation-settings: 'FILL' 1, 'wght' 400;
+        }
+
+        .floating-write-btn.active .material-symbols-rounded {
+            color: var(--text-main);
         }
     </style>
 </head>
@@ -400,7 +413,6 @@
 
     <div class="content-container">
 
-        <!-- 📅 [탭 1] 만년 달력 화면 (좌우 드래그 스와이프 지원) -->
         <div id="panel-calendar" class="tab-panel active">
             <div class="calendar-header-nav">
                 <button class="btn-nav-month" onclick="changeMonth(-1)">
@@ -426,63 +438,20 @@
             </div>
         </div>
 
-        <!-- ✅ [탭 2] 주간 To-Do List 화면 -->
         <div id="panel-todo" class="tab-panel">
             <div class="view-title">
                 <span class="material-symbols-rounded">checklist</span>
                 Weekly To Do List
             </div>
-            <div class="weekly-container">
-                <div class="week-card">
-                    <div class="week-title"><span class="material-symbols-rounded">event_note</span>1주 차</div>
-                    <div class="todo-input-group">
-                        <input type="text" id="input-week1" placeholder="할 일을 입력하세요...">
-                        <button onclick="addTodo(1)">추가</button>
-                    </div>
-                    <ul class="todo-list" id="list-week1"></ul>
+            <div class="weekly-container" id="weekly-todo-container">
                 </div>
-                <div class="week-card">
-                    <div class="week-title"><span class="material-symbols-rounded">event_note</span>2주 차</div>
-                    <div class="todo-input-group">
-                        <input type="text" id="input-week2" placeholder="할 일을 입력하세요...">
-                        <button onclick="addTodo(2)">추가</button>
-                    </div>
-                    <ul class="todo-list" id="list-week2"></ul>
-                </div>
-                <div class="week-card">
-                    <div class="week-title"><span class="material-symbols-rounded">event_note</span>3주 차</div>
-                    <div class="todo-input-group">
-                        <input type="text" id="input-week3" placeholder="할 일을 입력하세요...">
-                        <button onclick="addTodo(3)">추가</button>
-                    </div>
-                    <ul class="todo-list" id="list-week3"></ul>
-                </div>
-                <div class="week-card">
-                    <div class="week-title"><span class="material-symbols-rounded">event_note</span>4주 차</div>
-                    <div class="todo-input-group">
-                        <input type="text" id="input-week4" placeholder="할 일을 입력하세요...">
-                        <button onclick="addTodo(4)">추가</button>
-                    </div>
-                    <ul class="todo-list" id="list-week4"></ul>
-                </div>
-                <div class="week-card">
-                    <div class="week-title"><span class="material-symbols-rounded">event_note</span>5주 차</div>
-                    <div class="todo-input-group">
-                        <input type="text" id="input-week5" placeholder="할 일을 입력하세요...">
-                        <button onclick="addTodo(5)">추가</button>
-                    </div>
-                    <ul class="todo-list" id="list-week5"></ul>
-                </div>
-            </div>
         </div>
 
-        <!-- ✒️ [탭 3] 다이어리 기록 입력 화면 -->
         <div id="panel-write" class="tab-panel">
             <div class="view-title" id="write-view-title" style="font-size: 1.2rem; color: var(--accent-color);">
                 기록하기
             </div>
 
-            <!-- 날씨 & 온도 -->
             <div class="form-group weather-temp-group">
                 <div>
                     <label>☀️ 날씨</label>
@@ -499,7 +468,6 @@
                 </div>
             </div>
 
-            <!-- 스티커 업로드 -->
             <div class="form-group">
                 <label>📸 오늘의 스티커</label>
                 <label for="file-input" class="file-uploader" id="upload-label">
@@ -511,27 +479,39 @@
                 </div>
             </div>
 
-            <!-- 장소 -->
             <div class="form-group">
                 <label>📍 장소</label>
-                <input type="text" id="diary-place" placeholder="예: 어린이대공원, 00카페">
+                <input type="text" id="diary-place" placeholder="예: 어린이대공원, 인천 카페">
             </div>
 
-            <!-- 감정 -->
             <div class="form-group">
                 <label>🥰 감정</label>
                 <select id="diary-emotion">
-                    <option value="즐거움">즐거움 (연주황)</option>
-                    <option value="평온">평온 (연연두)</option>
-                    <option value="슬픔">슬픔 (연하늘)</option>
-                    <option value="분노">분노 (연분홍)</option>
+                    <option value="평온">평온</option>
+                    <option value="기쁨">기쁨</option>
+                    <option value="스트레스">스트레스</option>
+                    <option value="걱정">걱정</option>
+                    <option value="피곤">피곤</option>
+                    <option value="지루">지루</option>
+                    <option value="신남">신남</option>
+                    <option value="슬픔">슬픔</option>
                 </select>
             </div>
 
-            <!-- 본문 -->
             <div class="form-group">
                 <label>💖 감사 일기 & 메모</label>
-                <textarea id="diary-content" rows="6" placeholder="오늘 하루 감사했던 일이나 기록을 남겨보세요."></textarea>
+                <textarea id="diary-content" rows="4" placeholder="오늘 하루 감사했던 일이나 기록을 남겨보세요."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>✅ Today's To Do List</label>
+                <div class="daily-todo-container">
+                    <div class="todo-input-group">
+                        <input type="text" id="daily-todo-input" placeholder="오늘 할 일을 입력하세요...">
+                        <button onclick="addDailyTodo()">추가</button>
+                    </div>
+                    <ul class="todo-list" id="daily-todo-list"></ul>
+                </div>
             </div>
 
             <button class="btn-save" onclick="saveData()">다이어리 저장하기</button>
@@ -539,7 +519,6 @@
 
     </div>
 
-    <!-- 📱 하단 감성 네비게이션 바 -->
     <div class="bottom-nav-container">
         <div class="main-nav-bar">
             <button class="nav-item active" onclick="switchTab('calendar', this)">
@@ -550,35 +529,40 @@
             </button>
         </div>
         <button class="floating-write-btn" id="write-nav-btn" onclick="switchTab('write', this)">
-            <span class="material-symbols-rounded">edit_note</span>
+            <span class="material-symbols-rounded">ink_pen</span>
         </button>
     </div>
 
     <script>
-        // 🗓️ [만년달력 핵심 로직] 캘린더 전역 변수 설정
+        // 🗓️ 캘린더 전역 변수 설정
         let currentDate = new Date(2026, 6, 15); // 2026년 7월 15일 기본값 설정 (7월은 index 6)
         let selectedDateStr = "2026-07-15"; 
         let base64ImageStr = ""; 
 
         let plannerData = JSON.parse(localStorage.getItem('plannerData')) || {};
-        let todoData = JSON.parse(localStorage.getItem('todoData')) || { 1: [], 2: [], 3: [], 4: [], 5: [] };
+        let weeklyTodoData = JSON.parse(localStorage.getItem('weeklyTodoData')) || {};
 
+        // 🎨 요청해주신 8가지 감정과 파스텔 배경색 매핑 테이블
         const emotionColors = {
-            '즐거움': '#ffe8cc', // 연주황
-            '평온': '#e2f6e2',   // 연연두
-            '슬픔': '#e7f5ff',   // 연하늘
-            '분노': '#fff0f6'    // 연분홍
+            '평온': '#e2f6e2',      // 연두색
+            '기쁨': '#fff9db',      // 노란색
+            '스트레스': '#ffe3e3',   // 빨간색
+            '걱정': '#f3e8ff',      // 보라색
+            '피곤': '#f5ece3',      // 갈색
+            '지루': '#e9ecef',      // 회색
+            '신남': '#ffe8cc',      // 주황색
+            '슬픔': '#e7f5ff'       // 파란색
         };
 
         window.onload = function() {
             renderCalendar();
-            renderAllTodos();
+            renderWeeklyTodos();
             loadDayData(selectedDateStr);
             updateWriteTitle();
-            initSwipeEvents(); // 스와이프 리스너 초기화
+            initSwipeEvents();
         };
 
-        // 탭 스위칭 매커니즘
+        // 탭 스위칭
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
@@ -603,37 +587,32 @@
             `;
         }
 
-        // 🗓️ 동적으로 만년달력 그리는 기능
+        // 🗓️ 동적으로 만년달력 그리기
         function renderCalendar() {
             const calendarDays = document.getElementById('calendar-days');
             calendarDays.innerHTML = '';
 
             const year = currentDate.getFullYear();
-            const month = currentDate.getMonth(); // 0 ~ 11
+            const month = currentDate.getMonth();
 
-            // 캘린더 상단 제목 업데이트 (영어 형식)
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             document.getElementById('calendar-title').innerText = `${monthNames[month]} ${year}`;
 
-            // 해당 월의 첫 날과 마지막 날 계산
-            const firstDayIndex = new Date(year, month, 1).getDay(); // 시작 요일 인덱스
-            const totalDays = new Date(year, month + 1, 0).getDate(); // 해당 월의 총 일수
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const totalDays = new Date(year, month + 1, 0).getDate();
 
-            // 빈칸 채우기
             for (let i = 0; i < firstDayIndex; i++) {
                 const blank = document.createElement('div');
                 blank.style.visibility = 'hidden';
                 calendarDays.appendChild(blank);
             }
 
-            // 요일 정보에 맞추어 일자 셀 렌더링
             for (let day = 1; day <= totalDays; day++) {
                 const dayDiv = document.createElement('div');
                 dayDiv.classList.add('day-cell');
                 
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 
-                // 오늘 날짜 하이라이트 (시스템 오늘 날짜 매칭)
                 const sysToday = new Date();
                 if (sysToday.getFullYear() === year && sysToday.getMonth() === month && sysToday.getDate() === day) {
                     dayDiv.classList.add('today');
@@ -641,7 +620,7 @@
 
                 dayDiv.innerHTML = `<div class="day-number">${day}</div>`;
 
-                // 로컬 스토리지에 이 날짜 기록이 있는지 검색
+                // 저장된 다이어리의 감정에 연동하여 파스텔 배경색 표시
                 if (plannerData[dateStr]) {
                     const emotion = plannerData[dateStr].emotion;
                     if (emotion && emotionColors[emotion]) {
@@ -656,7 +635,6 @@
                     }
                 }
 
-                // 날짜 터치/클릭 이벤트
                 dayDiv.addEventListener('click', () => {
                     selectedDateStr = dateStr;
                     updateWriteTitle();
@@ -666,15 +644,16 @@
 
                 calendarDays.appendChild(dayDiv);
             }
+
+            renderWeeklyTodos();
         }
 
-        // 월 변경 처리 (화살표 버튼 혹은 스와이프 시 호출)
         function changeMonth(direction) {
             currentDate.setMonth(currentDate.getMonth() + direction);
             renderCalendar();
         }
 
-        // ↔️ 모바일 화면용 좌우 스와이프 드래그 인식 시스템
+        // ↔️ 좌우 드래그 스와이프 리스너
         let touchStartX = 0;
         let touchEndX = 0;
 
@@ -692,13 +671,11 @@
         }
 
         function handleSwipe() {
-            const threshold = 60; // 최소 드래그 길이 인식값 (픽셀)
+            const threshold = 60;
             if (touchStartX - touchEndX > threshold) {
-                // 오른쪽에서 왼쪽으로 스와이프 ➡️ 다음 달로 이동
-                changeMonth(1);
+                changeMonth(1); // 다음달
             } else if (touchEndX - touchStartX > threshold) {
-                // 왼쪽에서 오른쪽으로 스와이프 ➡️ 이전 달로 이동
-                changeMonth(-1);
+                changeMonth(-1); // 이전달
             }
         }
 
@@ -718,7 +695,7 @@
             }
         }
 
-        // 특정 날짜 다이어리 불러오기
+        // 다이어리 불러오기
         function loadDayData(dateStr) {
             const data = plannerData[dateStr];
             const preview = document.getElementById('img-preview');
@@ -727,7 +704,7 @@
                 document.getElementById('diary-weather').value = data.weather || '☀️ 맑음';
                 document.getElementById('diary-temp').value = data.temp || '';
                 document.getElementById('diary-place').value = data.place || '';
-                document.getElementById('diary-emotion').value = data.emotion || '즐거움';
+                document.getElementById('diary-emotion').value = data.emotion || '평온';
                 document.getElementById('diary-content').value = data.content || '';
                 if (data.image) {
                     base64ImageStr = data.image;
@@ -741,10 +718,12 @@
                 document.getElementById('diary-weather').value = '☀️ 맑음';
                 document.getElementById('diary-temp').value = '';
                 document.getElementById('diary-place').value = '';
-                document.getElementById('diary-emotion').value = '즐거움';
+                document.getElementById('diary-emotion').value = '평온';
                 document.getElementById('diary-content').value = '';
                 clearImage();
             }
+
+            renderDailyTodos();
         }
 
         function clearImage() {
@@ -756,13 +735,21 @@
 
         // 다이어리 저장
         function saveData() {
+            const dailyTodos = [];
+            document.querySelectorAll('#daily-todo-list .todo-item').forEach((li) => {
+                const text = li.querySelector('.todo-text span:last-child').innerText;
+                const completed = li.querySelector('.todo-text').classList.contains('completed');
+                dailyTodos.push({ text: text, completed: completed });
+            });
+
             plannerData[selectedDateStr] = {
                 image: base64ImageStr,
                 weather: document.getElementById('diary-weather').value,
                 temp: document.getElementById('diary-temp').value,
                 place: document.getElementById('diary-place').value,
                 emotion: document.getElementById('diary-emotion').value,
-                content: document.getElementById('diary-content').value
+                content: document.getElementById('diary-content').value,
+                dailyTodos: dailyTodos
             };
 
             localStorage.setItem('plannerData', JSON.stringify(plannerData));
@@ -771,55 +758,166 @@
             switchTab('calendar', document.querySelector('.nav-item'));
         }
 
-        /* --- To Do List 로직 --- */
-        function addTodo(weekNum) {
-            const input = document.getElementById(`input-week${weekNum}`);
-            const text = input.value.trim();
-            if(!text) return;
+        /* --- 📅 [동적 주간 To Do List 생성 시스템] --- */
+        function getWeeksInMonth(year, month) {
+            const weeks = [];
+            const firstDate = new Date(year, month, 1);
+            const lastDate = new Date(year, month + 1, 0);
+            const numDays = lastDate.getDate();
 
-            todoData[weekNum].push({ text: text, completed: false });
-            localStorage.setItem('todoData', JSON.stringify(todoData));
-            input.value = '';
-            renderTodosByWeek(weekNum);
-        }
+            let start = 1;
+            let end = 7 - firstDate.getDay();
+            if (end < 1) end = 1;
 
-        function renderAllTodos() {
-            for(let i = 1; i <= 5; i++) {
-                renderTodosByWeek(i);
+            let weekCount = 1;
+
+            while (start <= numDays) {
+                weeks.push({
+                    weekIndex: weekCount,
+                    startDay: start,
+                    endDay: Math.min(end, numDays)
+                });
+                start = end + 1;
+                end = end + 7;
+                weekCount++;
             }
+            return weeks;
         }
 
-        function renderTodosByWeek(weekNum) {
-            const listEl = document.getElementById(`list-week${weekNum}`);
+        function renderWeeklyTodos() {
+            const container = document.getElementById('weekly-todo-container');
+            container.innerHTML = '';
+
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const weeks = getWeeksInMonth(year, month);
+            const monthNum = month + 1;
+
+            weeks.forEach(w => {
+                const storageKey = `${year}-${monthNum}-W${w.weekIndex}`;
+                const items = weeklyTodoData[storageKey] || [];
+
+                const card = document.createElement('div');
+                card.classList.add('week-card');
+
+                card.innerHTML = `
+                    <div class="week-title">
+                        Week ${w.weekIndex} (${monthNum}/${w.startDay} - ${monthNum}/${w.endDay})
+                    </div>
+                    <div class="todo-input-group">
+                        <input type="text" id="input-week-${w.weekIndex}" placeholder="할 일을 입력하세요...">
+                        <button onclick="addWeeklyTodo('${storageKey}', ${w.weekIndex})">추가</button>
+                    </div>
+                    <ul class="todo-list" id="list-week-${w.weekIndex}"></ul>
+                `;
+                container.appendChild(card);
+                renderWeeklyList(storageKey, w.weekIndex);
+            });
+        }
+
+        function renderWeeklyList(storageKey, weekIndex) {
+            const listEl = document.getElementById(`list-week-${weekIndex}`);
+            if (!listEl) return;
             listEl.innerHTML = '';
 
-            const items = todoData[weekNum] || [];
-            items.forEach((item, index) => {
+            const items = weeklyTodoData[storageKey] || [];
+            items.forEach((item, idx) => {
                 const li = document.createElement('li');
                 li.classList.add('todo-item');
                 li.innerHTML = `
-                    <div class="todo-text ${item.completed ? 'completed' : ''}" onclick="toggleTodo(${weekNum}, ${index})">
+                    <div class="todo-text ${item.completed ? 'completed' : ''}" onclick="toggleWeeklyTodo('${storageKey}', ${idx}, ${weekIndex})">
                         <span class="material-symbols-rounded" style="font-size: 18px;">
                             ${item.completed ? 'check_box' : 'check_box_outline_blank'}
                         </span>
                         <span>${item.text}</span>
                     </div>
-                    <span class="material-symbols-rounded todo-delete" onclick="deleteTodo(${weekNum}, ${index})">delete</span>
+                    <span class="material-symbols-rounded todo-delete" onclick="deleteWeeklyTodo('${storageKey}', ${idx}, ${weekIndex})">delete</span>
                 `;
                 listEl.appendChild(li);
             });
         }
 
-        function toggleTodo(weekNum, index) {
-            todoData[weekNum][index].completed = !todoData[weekNum][index].completed;
-            localStorage.setItem('todoData', JSON.stringify(todoData));
-            renderTodosByWeek(weekNum);
+        function addWeeklyTodo(storageKey, weekIndex) {
+            const input = document.getElementById(`input-week-${weekIndex}`);
+            const text = input.value.trim();
+            if(!text) return;
+
+            if(!weeklyTodoData[storageKey]) {
+                weeklyTodoData[storageKey] = [];
+            }
+            weeklyTodoData[storageKey].push({ text: text, completed: false });
+            localStorage.setItem('weeklyTodoData', JSON.stringify(weeklyTodoData));
+            input.value = '';
+            renderWeeklyList(storageKey, weekIndex);
         }
 
-        function deleteTodo(weekNum, index) {
-            todoData[weekNum].splice(index, 1);
-            localStorage.setItem('todoData', JSON.stringify(todoData));
-            renderTodosByWeek(weekNum);
+        function toggleWeeklyTodo(storageKey, idx, weekIndex) {
+            weeklyTodoData[storageKey][idx].completed = !weeklyTodoData[storageKey][idx].completed;
+            localStorage.setItem('weeklyTodoData', JSON.stringify(weeklyTodoData));
+            renderWeeklyList(storageKey, weekIndex);
+        }
+
+        function deleteWeeklyTodo(storageKey, idx, weekIndex) {
+            weeklyTodoData[storageKey].splice(idx, 1);
+            localStorage.setItem('weeklyTodoData', JSON.stringify(weeklyTodoData));
+            renderWeeklyList(storageKey, weekIndex);
+        }
+
+        /* --- ✅ [일일 To Do List 로직] --- */
+        function renderDailyTodos() {
+            const listEl = document.getElementById('daily-todo-list');
+            listEl.innerHTML = '';
+
+            const data = plannerData[selectedDateStr];
+            const items = (data && data.dailyTodos) ? data.dailyTodos : [];
+
+            items.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.classList.add('todo-item');
+                li.innerHTML = `
+                    <div class="todo-text ${item.completed ? 'completed' : ''}" onclick="toggleDailyTodo(${index})">
+                        <span class="material-symbols-rounded" style="font-size: 18px;">
+                            ${item.completed ? 'check_box' : 'check_box_outline_blank'}
+                        </span>
+                        <span>${item.text}</span>
+                    </div>
+                    <span class="material-symbols-rounded todo-delete" onclick="deleteDailyTodo(${index})">delete</span>
+                `;
+                listEl.appendChild(li);
+            });
+        }
+
+        function addDailyTodo() {
+            const input = document.getElementById('daily-todo-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            if (!plannerData[selectedDateStr]) {
+                plannerData[selectedDateStr] = {
+                    image: "", weather: "☀️ 맑음", temp: "", place: "", emotion: "평온", content: "", dailyTodos: []
+                };
+            }
+            if(!plannerData[selectedDateStr].dailyTodos) {
+                plannerData[selectedDateStr].dailyTodos = [];
+            }
+
+            plannerData[selectedDateStr].dailyTodos.push({ text: text, completed: false });
+            input.value = '';
+            renderDailyTodos();
+        }
+
+        function toggleDailyTodo(index) {
+            if(plannerData[selectedDateStr] && plannerData[selectedDateStr].dailyTodos) {
+                plannerData[selectedDateStr].dailyTodos[index].completed = !plannerData[selectedDateStr].dailyTodos[index].completed;
+                renderDailyTodos();
+            }
+        }
+
+        function deleteDailyTodo(index) {
+            if(plannerData[selectedDateStr] && plannerData[selectedDateStr].dailyTodos) {
+                plannerData[selectedDateStr].dailyTodos.splice(index, 1);
+                renderDailyTodos();
+            }
         }
     </script>
 </body>
