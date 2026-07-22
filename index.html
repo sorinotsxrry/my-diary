@@ -12,7 +12,7 @@
             --text-main: #3c3530;
             --text-muted: #8a8279;
             --accent-color: #bfa18f;
-            --border-radius: 24px;
+            --border-color: #eee2d7;
             
             /* 감정별 색상 정의 */
             --mood-happy: #ffead0;
@@ -21,53 +21,76 @@
             --mood-calm: #e2f0d9;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; color: var(--text-main); }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--text-main); }
         body { background-color: var(--bg-color); height: 100vh; display: flex; flex-direction: column; }
         
         .content-container { flex: 1; padding: 15px; overflow-y: auto; display: flex; justify-content: center; }
         .tab-panel { width: 100%; max-width: 600px; display: none; }
         .tab-panel.active { display: block; }
 
-        /* 1. 박스 프레임을 없애고 선(Line)으로 달력 구획 나누기 */
-        .calendar-container { background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid #e3ded8; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); background-color: #e3ded8; gap: 1px; } /* gap을 이용해 선 구현 */
+        /* 1. 달력 칸 (선 나누기 형태) */
+        .calendar-container { background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); background-color: var(--border-color); gap: 1px; }
         .day-cell { 
-            background: #fff; padding: 8px 4px; 
-            aspect-ratio: 1 / 1.3; /* 세로형 스티커 공간 확보 */
+            background: #fff; padding: 6px; 
+            aspect-ratio: 1 / 1.3; 
             display: flex; flex-direction: column; align-items: center; cursor: pointer;
             position: relative; overflow: hidden;
         }
-        .day-cell:hover { background-color: #faf9f7; }
 
-        /* 띠부띠부 스티커 효과 */
-        .sticker-img-container { position: absolute; bottom: 4px; width: 85%; height: 65%; }
-        .sticker-img { 
-            width: 100%; height: 100%; object-fit: contain;
-            filter: drop-shadow(1.5px 0 0 #fff) drop-shadow(-1.5px 0 0 #fff) drop-shadow(0 1.5px 0 #fff) drop-shadow(0 -1.5px 0 #fff) drop-shadow(0 3px 5px rgba(0,0,0,0.2));
+        /* 2. 캘린더 속 우표 스타일 이미지 */
+        .stamp-container {
+            width: 85%;
+            height: 70%;
+            margin-top: 4px;
+            padding: 3px;
+            background: #ffffff;
+            /* 톱니바퀴 우표 테두리 효과 */
+            outline: 2px dashed #d5cac1;
+            outline-offset: -2px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stamp-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 2px;
         }
 
-        /* 사진 추가 버튼 */
+        /* 입력 폼 스타일링 */
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 15px; margin-bottom: 8px; color: #4a443f; }
+        
+        /* 사진 올리기 구역 */
         .file-uploader {
-            display: block; padding: 15px; background: #fcfbfa; border: 2px dashed #eae7e4;
-            border-radius: 14px; text-align: center; cursor: pointer; color: var(--text-muted);
-            margin-top: 5px; margin-bottom: 15px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; background: #ffffff; border: 2px dashed #e5dfd9;
+            border-radius: 16px; text-align: center; cursor: pointer; color: var(--text-muted);
+            font-size: 14px; font-weight: 500;
         }
 
-        /* 2. 감정 선택 옵션에 색상 적용 */
-        .mood-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+        /* 텍스트 입력창 */
+        textarea, select, input[type="text"] {
+            width: 100%; padding: 14px; border: 1px solid #ebdcd0; border-radius: 16px;
+            background: #ffffff; font-size: 14px; outline: none;
+        }
+        textarea { resize: none; height: 100px; }
+
+        /* 감정 버튼 옵션 */
+        .mood-selector { display: flex; gap: 8px; }
         .mood-option {
-            flex: 1; padding: 12px; text-align: center; border-radius: 12px; cursor: pointer;
-            font-size: 14px; font-weight: 500; border: 2px solid transparent; transition: 0.2s;
+            flex: 1; padding: 12px 6px; text-align: center; border-radius: 12px; cursor: pointer;
+            font-size: 13px; font-weight: 600; border: 2px solid transparent; transition: all 0.2s;
         }
         .mood-option.happy { background-color: var(--mood-happy); }
         .mood-option.sad { background-color: var(--mood-sad); }
         .mood-option.angry { background-color: var(--mood-angry); }
         .mood-option.calm { background-color: var(--mood-calm); }
-
-        /* 선택된 감정 강조 */
         .mood-option input[type="radio"] { display: none; }
-        .mood-option input[type="radio"]:checked + span { font-weight: bold; }
-        .mood-option.selected { border-color: var(--text-main); }
+        .mood-option.selected { border-color: var(--text-main); transform: translateY(-1px); }
     </style>
 </head>
 <body>
@@ -78,73 +101,75 @@
             <h2 style="margin-bottom: 15px;">2026년 7월</h2>
             <div class="calendar-container">
                 <div class="calendar-grid">
-                    <!-- 예시 날짜 칸 (선으로 분할된 형태) -->
+                    <!-- 우표 사진 반영 예시 칸 -->
                     <div class="day-cell">
-                        <span style="font-size: 12px; color: var(--text-muted);">1</span>
-                    </div>
-                    <div class="day-cell">
-                        <span style="font-size: 12px; color: var(--text-muted);">2</span>
-                    </div>
-                    <div class="day-cell">
-                        <span style="font-size: 12px; color: var(--text-muted);">3</span>
-                    </div>
-                    <div class="day-cell">
-                        <span style="font-size: 12px; color: var(--text-muted);">4</span>
-                    </div>
-                    <div class="day-cell">
-                        <span style="font-size: 12px; color: var(--text-muted);">5</span>
-                    </div>
-                    <div class="day-cell">
-                        <span style="font-size: 12px; color: var(--text-muted);">6</span>
-                    </div>
-                    <div class="day-cell">
-                        <span style="font-size: 12px; color: var(--text-muted);">7</span>
+                        <span style="font-size: 11px; color: var(--text-muted);">22</span>
+                        <div class="stamp-container">
+                            <img src="https://via.placeholder.com/100" class="stamp-img" alt="우표 사진">
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 다이어리 입력 패널 -->
-        <div id="panel-write" class="tab-panel">
-            <h2 style="margin-bottom: 20px;">기록하기</h2>
+        <!-- 다이어리 기록 패널 -->
+        <div id="panel-write" class="tab-panel active" style="margin-top: 20px;">
             
-            <!-- 감정 선택 옵션 (색상 적용) -->
-            <label style="display: block; margin-bottom: 8px; font-weight: bold;">오늘의 기분</label>
-            <div class="mood-selector">
-                <label class="mood-option happy" onclick="selectMood(this)">
-                    <input type="radio" name="mood" value="happy"> <span>😊 기쁨</span>
-                </label>
-                <label class="mood-option sad" onclick="selectMood(this)">
-                    <input type="radio" name="mood" value="sad"> <span>💧 슬픔</span>
-                </label>
-                <label class="mood-option angry" onclick="selectMood(this)">
-                    <input type="radio" name="mood" value="angry"> <span>🔥 짜증</span>
-                </label>
-                <label class="mood-option calm" onclick="selectMood(this)">
-                    <input type="radio" name="mood" value="calm"> <span>🌿 평온</span>
-                </label>
-            </div>
-
+            <!-- 1. 오늘의 사진 -->
             <div class="form-group">
-                <label style="display: block; margin-bottom: 8px; font-weight: bold;">사진 추가</label>
+                <label class="form-label">📸 오늘의 사진</label>
                 <label for="file-input" class="file-uploader" id="upload-label">
-                    사진 추가
+                    <span>사진 올리기</span>
                 </label>
                 <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="previewImage(event)">
-                <img id="img-preview" style="max-width: 100px; display: none; margin-top: 10px; border-radius: 8px;">
+                
+                <!-- 업로드 후 우표 느낌 뷰 -->
+                <div id="preview-wrapper" style="display: none; margin-top: 12px; text-align: center;">
+                    <div class="stamp-container" style="width: 110px; height: 130px; margin: 0 auto;">
+                        <img id="img-preview" class="stamp-img">
+                    </div>
+                </div>
             </div>
-            
-            <button onclick="saveData()" style="width: 100%; padding: 15px; margin-top: 20px; background: var(--text-main); color: #fff; border: none; border-radius: 12px; cursor: pointer;">저장하기</button>
+
+            <!-- 2. 장소 -->
+            <div class="form-group">
+                <label class="form-label">📍 장소</label>
+                <input type="text" placeholder="오너커피">
+            </div>
+
+            <!-- 3. 감정 (색상 적용) -->
+            <div class="form-group">
+                <label class="form-label">🥰 감정</label>
+                <div class="mood-selector">
+                    <label class="mood-option happy selected" onclick="selectMood(this)">
+                        <input type="radio" name="mood" value="happy" checked> 😊 기쁨
+                    </label>
+                    <label class="mood-option sad" onclick="selectMood(this)">
+                        <input type="radio" name="mood" value="sad"> 💧 슬픔
+                    </label>
+                    <label class="mood-option angry" onclick="selectMood(this)">
+                        <input type="radio" name="mood" value="angry"> 🔥 짜증
+                    </label>
+                    <label class="mood-option calm" onclick="selectMood(this)">
+                        <input type="radio" name="mood" value="calm"> 🌿 평온
+                    </label>
+                </div>
+            </div>
+
+            <!-- 4. 감사 일기 혹은 좋았던 일 3개 -->
+            <div class="form-group">
+                <label class="form-label">💖 감사 일기 혹은 좋았던 일 3개</label>
+                <textarea placeholder="오늘 좋았던 일이나 감사한 일들을 써보세요."></textarea>
+            </div>
+
         </div>
     </div>
 
     <script>
-        // 감정 선택 시 테두리 및 스타일 처리 스크립트
         function selectMood(element) {
             document.querySelectorAll('.mood-option').forEach(opt => opt.classList.remove('selected'));
             element.classList.add('selected');
-            const radio = element.querySelector('input[type="radio"]');
-            radio.checked = true;
+            element.querySelector('input[type="radio"]').checked = true;
         }
 
         function previewImage(event) {
@@ -154,13 +179,12 @@
                 reader.onload = function(e) {
                     const preview = document.getElementById('img-preview');
                     preview.src = e.target.result;
-                    preview.style.display = 'block';
-                    document.getElementById('upload-label').innerText = "사진 추가 완료";
+                    document.getElementById('preview-wrapper').style.display = 'block';
+                    document.getElementById('upload-label').innerText = "사진 수정하기";
                 };
                 reader.readAsDataURL(file);
             }
         }
-        function saveData() { alert("저장되었습니다."); }
     </script>
 </body>
 </html>
