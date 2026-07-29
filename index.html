@@ -158,7 +158,7 @@
             align-self: flex-start; /* 날짜 숫자는 좌측 상단에 단정하게 안착 */
         }
 
-        /* [핵심 요청 반영] 🤩 진짜 띠부띠부씰 느낌의 누끼 딴 스티커 렌더러 구현 */
+        /* [우표 스타일 렌더러] 사진 테두리에 우표 특유의 울퉁불퉁한 톱니(퍼포레이션)를 실제로 잘라냅니다. */
         .sticker-img-container {
             position: absolute;
             bottom: 4px; /* 아래쪽에 예쁘게 얹혀지도록 배치 */
@@ -167,24 +167,22 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            background: #ffffff;
+            padding: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.14);
+            -webkit-mask-image: url(#stamp-scallop-mask);
+            mask-image: url(#stamp-scallop-mask);
+            -webkit-mask-size: 100% 100%;
+            mask-size: 100% 100%;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
         }
 
         .sticker-img {
             width: 100%;
             height: 100%;
             object-fit: contain; /* 이미지 비율 찌그러짐 원천 차단! */
-            
-            /* [띠부띠부씰 필터 기법] 투명 배경을 가진 누끼 이미지 외곽선을 따라 하얀 테두리와 부드러운 그림자를 더합니다. */
-            filter: 
-                drop-shadow(1.5px 0 0 #ffffff) 
-                drop-shadow(-1.5px 0 0 #ffffff) 
-                drop-shadow(0 1.5px 0 #ffffff) 
-                drop-shadow(0 -1.5px 0 #ffffff)
-                drop-shadow(1px 1px 0 #ffffff)
-                drop-shadow(-1px -1px 0 #ffffff)
-                drop-shadow(1px -1px 0 #ffffff)
-                drop-shadow(-1px 1px 0 #ffffff)
-                drop-shadow(0px 3px 5px rgba(0,0,0,0.18)); /* 스티커처럼 붕 뜨는 감성 입체 그림자 */
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1)); /* 사진 위에 은은한 입체감만 살짝 */
         }
 
         /* --- 2. 주간 To Do List 탭 스타일 --- */
@@ -292,16 +290,91 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
+            align-items: end; /* 라벨 높이가 달라도 인풋 하단이 맞춰지도록 */
         }
 
         input[type="text"], input[type="number"], input[type="date"], select, textarea {
             width: 100%;
-            padding: 12px;
+            height: 46px;
+            padding: 0 12px;
             background: #fdfdfd;
             border: 1px solid #eae7e4;
             border-radius: 14px;
             font-size: 0.9rem;
             outline: none;
+            box-sizing: border-box;
+        }
+
+        /* select는 브라우저마다 기본 세로 패딩/화살표가 달라 높이가 미세하게 어긋나므로 강제로 통일 */
+        select {
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8279' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 32px;
+        }
+
+        textarea {
+            height: auto;
+            padding: 12px;
+        }
+
+        #diary-emotion {
+            transition: background-color 0.2s ease;
+            font-weight: bold;
+        }
+
+        /* 감정 칩 나열형 선택 UI */
+        .emotion-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .emotion-chip {
+            padding: 9px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: 2px solid transparent;
+            opacity: 0.35;
+            filter: grayscale(0.25);
+            transition: opacity 0.2s ease, transform 0.15s ease, filter 0.2s ease, border-color 0.2s ease;
+        }
+
+        .emotion-chip:active {
+            transform: scale(0.95);
+        }
+
+        .emotion-chip.selected {
+            opacity: 1;
+            filter: none;
+            border-color: var(--text-main);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            transform: scale(1.05);
+        }
+
+        /* 캘린더 하단, 이달의 감정 스코어 */
+        .month-emotion-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: flex-end;
+            margin-top: 14px;
+        }
+
+        .emotion-score-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 12px;
+            color: var(--text-main);
         }
 
         .file-uploader {
@@ -863,6 +936,39 @@
 </head>
 <body>
 
+    <!-- 우표 톱니(퍼포레이션) 모양 정의: 사진 테두리 전체에 실제로 반원 홈을 파내는 SVG mask -->
+    <svg width="0" height="0" style="position:absolute;">
+        <defs>
+            <mask id="stamp-scallop-mask" maskContentUnits="objectBoundingBox">
+                <rect x="0" y="0" width="1" height="1" fill="white"/>
+                <circle cx="0.0833" cy="0" r="0.06" fill="black"/>
+                <circle cx="0.25" cy="0" r="0.06" fill="black"/>
+                <circle cx="0.4167" cy="0" r="0.06" fill="black"/>
+                <circle cx="0.5833" cy="0" r="0.06" fill="black"/>
+                <circle cx="0.75" cy="0" r="0.06" fill="black"/>
+                <circle cx="0.9167" cy="0" r="0.06" fill="black"/>
+                <circle cx="0.0833" cy="1" r="0.06" fill="black"/>
+                <circle cx="0.25" cy="1" r="0.06" fill="black"/>
+                <circle cx="0.4167" cy="1" r="0.06" fill="black"/>
+                <circle cx="0.5833" cy="1" r="0.06" fill="black"/>
+                <circle cx="0.75" cy="1" r="0.06" fill="black"/>
+                <circle cx="0.9167" cy="1" r="0.06" fill="black"/>
+                <circle cx="0" cy="0.0833" r="0.06" fill="black"/>
+                <circle cx="0" cy="0.25" r="0.06" fill="black"/>
+                <circle cx="0" cy="0.4167" r="0.06" fill="black"/>
+                <circle cx="0" cy="0.5833" r="0.06" fill="black"/>
+                <circle cx="0" cy="0.75" r="0.06" fill="black"/>
+                <circle cx="0" cy="0.9167" r="0.06" fill="black"/>
+                <circle cx="1" cy="0.0833" r="0.06" fill="black"/>
+                <circle cx="1" cy="0.25" r="0.06" fill="black"/>
+                <circle cx="1" cy="0.4167" r="0.06" fill="black"/>
+                <circle cx="1" cy="0.5833" r="0.06" fill="black"/>
+                <circle cx="1" cy="0.75" r="0.06" fill="black"/>
+                <circle cx="1" cy="0.9167" r="0.06" fill="black"/>
+            </mask>
+        </defs>
+    </svg>
+
     <div class="content-container">
 
         <div id="panel-calendar" class="tab-panel active">
@@ -888,6 +994,8 @@
                 </div>
                 <div class="calendar-grid" id="calendar-days"></div>
             </div>
+
+            <div class="month-emotion-summary" id="month-emotion-summary"></div>
         </div>
 
         <div id="panel-todo" class="tab-panel">
@@ -980,7 +1088,7 @@
             </div>
 
             <div class="form-group">
-                <label>📸 오늘의 띠부띠부 스티커 (누끼 이미지 추천)</label>
+                <label>📸 오늘의 사진</label>
                 <label for="file-input" class="file-uploader" id="upload-label">
                     이곳을 눌러 사진을 올려보세요
                 </label>
@@ -997,25 +1105,17 @@
 
             <div class="form-group">
                 <label>🥰 감정</label>
-                <select id="diary-emotion">
-                    <option value="평온">평온</option>
-                    <option value="기쁨">기쁨</option>
-                    <option value="스트레스">스트레스</option>
-                    <option value="걱정">걱정</option>
-                    <option value="피곤">피곤</option>
-                    <option value="지루">지루</option>
-                    <option value="신남">신남</option>
-                    <option value="슬픔">슬픔</option>
-                </select>
+                <div class="emotion-picker" id="emotion-picker"></div>
+                <input type="hidden" id="diary-emotion" value="평온">
             </div>
 
             <div class="form-group">
-                <label>💖 감사 일기 & 메모</label>
-                <textarea id="diary-content" rows="4" placeholder="오늘 하루 감사했던 일이나 기록을 남겨보세요."></textarea>
+                <label>💖 감사한 일 · 좋았던 일</label>
+                <textarea id="diary-content" rows="4" placeholder="오늘 하루 감사했던 일이나 좋았던 일을 기록해보세요."></textarea>
             </div>
 
             <div class="form-group">
-                <label>✅ Today's To Do List</label>
+                <label>✅ To Do List</label>
                 <div class="daily-todo-container">
                     <div class="todo-input-group">
                         <input type="text" id="daily-todo-input" placeholder="오늘 할 일을 입력하세요...">
@@ -1126,9 +1226,16 @@
     </div>
 
     <script>
-        // 전역 날짜 기본 세팅
-        let currentDate = new Date(2026, 6, 15); 
-        let selectedDateStr = "2026-07-15"; 
+        // 전역 날짜 기본 세팅 (오늘 날짜 기준)
+        function formatDateStr(d) {
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+        function getTodayStr() {
+            return formatDateStr(new Date());
+        }
+
+        let currentDate = new Date();
+        let selectedDateStr = getTodayStr();
         let base64ImageStr = ""; 
         let bookCoverBase64 = ""; 
         let activeBookView = "list"; 
@@ -1137,22 +1244,52 @@
         let weeklyTodoData = JSON.parse(localStorage.getItem('weeklyTodoData')) || {};
         let bookListData = JSON.parse(localStorage.getItem('bookListData')) || [];
 
-        document.getElementById('book-start-date').value = "2026-07-15";
-        document.getElementById('book-end-date').value = "2026-07-15";
+        document.getElementById('book-start-date').value = getTodayStr();
+        document.getElementById('book-end-date').value = getTodayStr();
 
         const emotionColors = {
-            '평온': '#e2f6e2', '기쁨': '#fff9db', '스트레스': '#ffe3e3', '걱정': '#f3e8ff',
-            '피곤': '#f5ece3', '지루': '#e9ecef', '신남': '#ffe8cc', '슬픔': '#e7f5ff'
+            '평온': '#d3f0d8',   /* 초록 */
+            '기쁨': '#ffe0b2',   /* 주황 */
+            '스트레스': '#ffd0d0', /* 빨강 */
+            '걱정': '#e5d4f7',   /* 보라 */
+            '피곤': '#e8d9c8',   /* 갈색 */
+            '지루': '#e2e2e2',   /* 회색 */
+            '신남': '#fff3b0',   /* 노랑 */
+            '슬픔': '#cfe8ff'    /* 파랑 */
         };
 
         window.onload = function() {
             renderCalendar();
             renderWeeklyTodos();
             renderBookList();
+            renderEmotionPicker();
             loadDayData(selectedDateStr);
             updateWriteTitle();
             initSwipeEvents();
         };
+
+        // 감정 칩 목록을 emotionColors 순서대로 생성 (각 칩은 자기 감정 색을 항상 띔)
+        function renderEmotionPicker() {
+            const picker = document.getElementById('emotion-picker');
+            picker.innerHTML = Object.keys(emotionColors).map(emotion => `
+                <div class="emotion-chip" data-emotion="${emotion}" style="background-color:${emotionColors[emotion]};" onclick="selectEmotion('${emotion}')">${emotion}</div>
+            `).join('');
+            updateEmotionPickerUI();
+        }
+
+        // 감정 칩 클릭 시 선택값 갱신
+        function selectEmotion(emotion) {
+            document.getElementById('diary-emotion').value = emotion;
+            updateEmotionPickerUI();
+        }
+
+        // 현재 선택된 감정만 색이 살아있고, 나머지는 흐리게 처리
+        function updateEmotionPickerUI() {
+            const current = document.getElementById('diary-emotion').value;
+            document.querySelectorAll('.emotion-chip').forEach(chip => {
+                chip.classList.toggle('selected', chip.dataset.emotion === current);
+            });
+        }
 
         // 탭 스위칭
         function switchTab(tabId, btnElement) {
@@ -1246,6 +1383,36 @@
                 calendarDays.appendChild(dayDiv);
             }
             renderWeeklyTodos();
+            renderMonthEmotionSummary(year, month);
+        }
+
+        // 이번 달에 기록된 감정별 개수를 우측 하단에 스코어로 표시
+        function renderMonthEmotionSummary(year, month) {
+            const summaryEl = document.getElementById('month-emotion-summary');
+            const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+
+            const counts = {};
+            Object.keys(plannerData).forEach(dateStr => {
+                if (dateStr.startsWith(monthPrefix)) {
+                    const emotion = plannerData[dateStr].emotion;
+                    if (emotion && emotionColors[emotion]) {
+                        counts[emotion] = (counts[emotion] || 0) + 1;
+                    }
+                }
+            });
+
+            const entries = Object.keys(emotionColors)
+                .filter(emotion => counts[emotion] > 0)
+                .map(emotion => ({ emotion, count: counts[emotion] }));
+
+            if (entries.length === 0) {
+                summaryEl.innerHTML = '';
+                return;
+            }
+
+            summaryEl.innerHTML = entries.map(({ emotion, count }) => `
+                <span class="emotion-score-chip" style="background-color:${emotionColors[emotion]};">${emotion} ${count}</span>
+            `).join('');
         }
 
         function changeMonth(direction) {
@@ -1323,13 +1490,13 @@
         function previewImageAndResize(event) {
             const file = event.target.files[0];
             if (file) {
-                document.getElementById('upload-label').innerText = "⚡ 띠부띠부 최적화 중...";
+                document.getElementById('upload-label').innerText = "⚡ 사진 최적화 중...";
                 resizeImage(file, 300, function(compressedBase64) {
                     base64ImageStr = compressedBase64;
                     const preview = document.getElementById('img-preview');
                     preview.src = base64ImageStr;
                     preview.style.display = 'inline-block';
-                    document.getElementById('upload-label').innerText = "✅ 띠부띠부 스티커 장착 완료";
+                    document.getElementById('upload-label').innerText = "✅ 사진 추가";
                 });
             }
         }
@@ -1358,12 +1525,13 @@
                 document.getElementById('diary-temp').value = data.temp || '';
                 document.getElementById('diary-place').value = data.place || '';
                 document.getElementById('diary-emotion').value = data.emotion || '평온';
+                updateEmotionPickerUI();
                 document.getElementById('diary-content').value = data.content || '';
                 if (data.image) {
                     base64ImageStr = data.image;
                     preview.src = data.image;
                     preview.style.display = 'inline-block';
-                    document.getElementById('upload-label').innerText = "✅ 등록된 띠부띠부씰 있음";
+                    document.getElementById('upload-label').innerText = "✅ 사진 추가";
                 } else {
                     clearImage();
                 }
@@ -1372,6 +1540,7 @@
                 document.getElementById('diary-temp').value = '';
                 document.getElementById('diary-place').value = '';
                 document.getElementById('diary-emotion').value = '평온';
+                updateEmotionPickerUI();
                 document.getElementById('diary-content').value = '';
                 clearImage();
             }
@@ -1387,7 +1556,7 @@
 
         function saveData() {
             if (!selectedDateStr) {
-                selectedDateStr = "2026-07-15";
+                selectedDateStr = getTodayStr();
             }
 
             const dailyTodos = [];
@@ -1729,8 +1898,8 @@
             document.getElementById('book-title').value = '';
             document.getElementById('book-author').value = '';
             document.getElementById('book-rating').value = '⭐⭐⭐⭐⭐';
-            document.getElementById('book-start-date').value = "2026-07-15";
-            document.getElementById('book-end-date').value = "2026-07-15";
+            document.getElementById('book-start-date').value = getTodayStr();
+            document.getElementById('book-end-date').value = getTodayStr();
             document.getElementById('book-review').value = '';
             
             bookCoverBase64 = "";
