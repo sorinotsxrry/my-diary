@@ -112,8 +112,10 @@
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, minmax(0, 1fr));
-            gap: 6px;
+            gap: 0;
             width: 100%;
+            border-top: 1px solid #eae7e4;
+            border-left: 1px solid #eae7e4;
         }
 
         .day-label {
@@ -124,11 +126,12 @@
             padding-bottom: 8px;
         }
 
-        /* [요청반영] 달력 칸 높이 세로로 길쭉하게 키우기 (기존 1:1에서 1:1.3 세로형 비율로 변경) */
+        /* [요청반영] 카드형 대신 표처럼 직선으로 일자를 구분 */
         .day-cell {
             background: #fdfdfd;
-            border: 1px solid #f2effc;
-            border-radius: 16px;
+            border-right: 1px solid #eae7e4;
+            border-bottom: 1px solid #eae7e4;
+            border-radius: 0;
             padding: 6px;
             display: flex;
             flex-direction: column;
@@ -139,15 +142,33 @@
             width: 100%;
             position: relative;
             overflow: hidden; /* 이미지 오버헤드 찌그러짐 방지 */
-            transition: transform 0.15s, background-color 0.2s;
+            transition: background-color 0.2s;
         }
 
         .day-cell:active {
-            transform: scale(0.95);
+            background-color: #f5f3ef;
         }
 
-        .day-cell.today {
-            border: 2px solid var(--accent-color);
+        /* 월 시작 전 빈 칸도 실제 일자 칸과 동일하게 격자선을 그려서 첫 줄 선이 끊기지 않도록 함 */
+        .day-cell-empty {
+            border-right: 1px solid #eae7e4;
+            border-bottom: 1px solid #eae7e4;
+            aspect-ratio: 1 / 1.3;
+            width: 100%;
+        }
+
+        .day-cell.today .day-number {
+            background: var(--accent-color);
+            color: #ffffff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            line-height: 1;
+            padding: 0;
         }
 
         .day-number {
@@ -215,20 +236,24 @@
             margin-bottom: 12px;
         }
 
-        .todo-input-group input {
+        .todo-input-group input[type="text"] {
             flex: 1;
-            padding: 10px;
+            height: 38px;
+            padding: 0 12px;
             border: 1px solid #eae7e4;
             border-radius: 10px;
             font-size: 0.85rem;
             outline: none;
+            box-sizing: border-box;
         }
 
         .todo-input-group button {
             background: var(--text-main);
             color: white;
             border: none;
-            padding: 0 16px;
+            width: 38px;
+            height: 38px;
+            padding: 0;
             border-radius: 10px;
             font-weight: bold;
             font-size: 1.1rem;
@@ -236,34 +261,47 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
 
         .todo-list {
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
 
         .todo-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             background: #fcfbfa;
-            padding: 8px 12px;
-            border-radius: 10px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid #f2efeb;
         }
 
         .todo-text {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             cursor: pointer;
+            font-weight: 600;
+        }
+
+        .todo-text .material-symbols-rounded {
+            font-size: 21px !important;
+            color: var(--accent-color);
         }
 
         .todo-text.completed {
             text-decoration: line-through;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .todo-text.completed .material-symbols-rounded {
             color: var(--text-muted);
         }
 
@@ -911,7 +949,6 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            border: none;
             transition: background-color 0.2s, transform 0.1s;
         }
 
@@ -941,30 +978,38 @@
         <defs>
             <mask id="stamp-scallop-mask" maskContentUnits="objectBoundingBox">
                 <rect x="0" y="0" width="1" height="1" fill="white"/>
-                <circle cx="0.0833" cy="0" r="0.06" fill="black"/>
-                <circle cx="0.25" cy="0" r="0.06" fill="black"/>
-                <circle cx="0.4167" cy="0" r="0.06" fill="black"/>
-                <circle cx="0.5833" cy="0" r="0.06" fill="black"/>
-                <circle cx="0.75" cy="0" r="0.06" fill="black"/>
-                <circle cx="0.9167" cy="0" r="0.06" fill="black"/>
-                <circle cx="0.0833" cy="1" r="0.06" fill="black"/>
-                <circle cx="0.25" cy="1" r="0.06" fill="black"/>
-                <circle cx="0.4167" cy="1" r="0.06" fill="black"/>
-                <circle cx="0.5833" cy="1" r="0.06" fill="black"/>
-                <circle cx="0.75" cy="1" r="0.06" fill="black"/>
-                <circle cx="0.9167" cy="1" r="0.06" fill="black"/>
-                <circle cx="0" cy="0.0833" r="0.06" fill="black"/>
-                <circle cx="0" cy="0.25" r="0.06" fill="black"/>
-                <circle cx="0" cy="0.4167" r="0.06" fill="black"/>
-                <circle cx="0" cy="0.5833" r="0.06" fill="black"/>
-                <circle cx="0" cy="0.75" r="0.06" fill="black"/>
-                <circle cx="0" cy="0.9167" r="0.06" fill="black"/>
-                <circle cx="1" cy="0.0833" r="0.06" fill="black"/>
-                <circle cx="1" cy="0.25" r="0.06" fill="black"/>
-                <circle cx="1" cy="0.4167" r="0.06" fill="black"/>
-                <circle cx="1" cy="0.5833" r="0.06" fill="black"/>
-                <circle cx="1" cy="0.75" r="0.06" fill="black"/>
-                <circle cx="1" cy="0.9167" r="0.06" fill="black"/>
+                <circle cx="0.0625" cy="0" r="0.035" fill="black"/>
+                <circle cx="0.1875" cy="0" r="0.035" fill="black"/>
+                <circle cx="0.3125" cy="0" r="0.035" fill="black"/>
+                <circle cx="0.4375" cy="0" r="0.035" fill="black"/>
+                <circle cx="0.5625" cy="0" r="0.035" fill="black"/>
+                <circle cx="0.6875" cy="0" r="0.035" fill="black"/>
+                <circle cx="0.8125" cy="0" r="0.035" fill="black"/>
+                <circle cx="0.9375" cy="0" r="0.035" fill="black"/>
+                <circle cx="0.0625" cy="1" r="0.035" fill="black"/>
+                <circle cx="0.1875" cy="1" r="0.035" fill="black"/>
+                <circle cx="0.3125" cy="1" r="0.035" fill="black"/>
+                <circle cx="0.4375" cy="1" r="0.035" fill="black"/>
+                <circle cx="0.5625" cy="1" r="0.035" fill="black"/>
+                <circle cx="0.6875" cy="1" r="0.035" fill="black"/>
+                <circle cx="0.8125" cy="1" r="0.035" fill="black"/>
+                <circle cx="0.9375" cy="1" r="0.035" fill="black"/>
+                <circle cx="0" cy="0.0625" r="0.035" fill="black"/>
+                <circle cx="0" cy="0.1875" r="0.035" fill="black"/>
+                <circle cx="0" cy="0.3125" r="0.035" fill="black"/>
+                <circle cx="0" cy="0.4375" r="0.035" fill="black"/>
+                <circle cx="0" cy="0.5625" r="0.035" fill="black"/>
+                <circle cx="0" cy="0.6875" r="0.035" fill="black"/>
+                <circle cx="0" cy="0.8125" r="0.035" fill="black"/>
+                <circle cx="0" cy="0.9375" r="0.035" fill="black"/>
+                <circle cx="1" cy="0.0625" r="0.035" fill="black"/>
+                <circle cx="1" cy="0.1875" r="0.035" fill="black"/>
+                <circle cx="1" cy="0.3125" r="0.035" fill="black"/>
+                <circle cx="1" cy="0.4375" r="0.035" fill="black"/>
+                <circle cx="1" cy="0.5625" r="0.035" fill="black"/>
+                <circle cx="1" cy="0.6875" r="0.035" fill="black"/>
+                <circle cx="1" cy="0.8125" r="0.035" fill="black"/>
+                <circle cx="1" cy="0.9375" r="0.035" fill="black"/>
             </mask>
         </defs>
     </svg>
@@ -999,9 +1044,17 @@
         </div>
 
         <div id="panel-todo" class="tab-panel">
-            <div class="view-title">
-                <span class="material-symbols-rounded">checklist</span>
-                Weekly To Do List
+            <div class="calendar-header-nav" style="margin-bottom: 10px;">
+                <button class="btn-nav-month" onclick="changeMonth(-1)">
+                    <span class="material-symbols-rounded">chevron_left</span>
+                </button>
+                <h2 id="weekly-title" style="font-size: 1.1rem; font-weight: 800; display:flex; align-items:center; gap:6px;">
+                    <span class="material-symbols-rounded" style="font-size: 20px;">checklist</span>
+                    Weekly To Do List
+                </h2>
+                <button class="btn-nav-month" onclick="changeMonth(1)">
+                    <span class="material-symbols-rounded">chevron_right</span>
+                </button>
             </div>
             <div class="weekly-swipe-zone" id="swipe-area-weekly">
                 <div class="weekly-container" id="weekly-todo-container">
@@ -1336,7 +1389,7 @@
 
             for (let i = 0; i < firstDayIndex; i++) {
                 const blank = document.createElement('div');
-                blank.style.visibility = 'hidden';
+                blank.classList.add('day-cell-empty');
                 calendarDays.appendChild(blank);
             }
 
@@ -1621,6 +1674,12 @@
             const month = currentDate.getMonth();
             const weeks = getWeeksInMonth(year, month);
             const monthNum = month + 1;
+
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            document.getElementById('weekly-title').innerHTML = `
+                <span class="material-symbols-rounded" style="font-size: 20px;">checklist</span>
+                ${monthNames[month]} ${year}
+            `;
 
             weeks.forEach(w => {
                 const storageKey = `${year}-${monthNum}-W${w.weekIndex}`;
