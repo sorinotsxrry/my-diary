@@ -157,6 +157,18 @@
             width: 100%;
         }
 
+        /* 사진이 있는 날짜는 숫자 뒤에 옅은 흰 원을 깔아 사진 위에서도 잘 읽히게 함 (원형 통일) */
+        .day-cell.has-photo .day-number {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
         .day-cell.today .day-number {
             background: var(--accent-color);
             color: #ffffff;
@@ -177,32 +189,34 @@
             color: #666;
             margin-bottom: 2px;
             align-self: flex-start; /* 날짜 숫자는 좌측 상단에 단정하게 안착 */
+            position: relative;
+            z-index: 2; /* 사진보다 항상 위에 표시되어 가려지지 않도록 함 */
         }
 
-        /* [우표 스타일 렌더러] 사진 테두리에 우표 특유의 울퉁불퉁한 톱니(퍼포레이션)를 실제로 잘라냅니다. */
+        /* [우표 스타일 렌더러] 사진 테두리에 우표 특유의 얇은 톱니(퍼포레이션)를 실제로 잘라냅니다.
+           - 날짜 숫자 바로 아래부터 칸 끝까지 항상 꽉 채워지도록 top/bottom 기준으로 배치
+           - id 참조 대신 self-contained data URI 마스크 사용 (모바일 브라우저 호환성 문제 해결) */
         .sticker-img-container {
             position: absolute;
-            bottom: 4px; /* 아래쪽에 예쁘게 얹혀지도록 배치 */
-            width: 86%;
-            height: 68%;
+            top: 27px;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 84%;
             display: flex;
             align-items: center;
             justify-content: center;
             background: #ffffff;
-            padding: 6px;
+            padding: 7px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.14);
-            -webkit-mask-image: url(#stamp-scallop-mask);
-            mask-image: url(#stamp-scallop-mask);
-            -webkit-mask-size: 100% 100%;
-            mask-size: 100% 100%;
-            -webkit-mask-repeat: no-repeat;
-            mask-repeat: no-repeat;
+            z-index: 1;
+            /* 톱니(퍼포레이션) 모양은 JS에서 실제 렌더링 픽셀 크기를 계산해 clip-path로 그려 넣음 (applyStampClip 함수) */
         }
 
         .sticker-img {
             width: 100%;
             height: 100%;
-            object-fit: contain; /* 이미지 비율 찌그러짐 원천 차단! */
+            object-fit: cover; /* 프레임을 항상 일정하게 유지 - 양옆/위아래가 잘리더라도 꽉 채움 */
             filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1)); /* 사진 위에 은은한 입체감만 살짝 */
         }
 
@@ -973,47 +987,6 @@
 </head>
 <body>
 
-    <!-- 우표 톱니(퍼포레이션) 모양 정의: 사진 테두리 전체에 실제로 반원 홈을 파내는 SVG mask -->
-    <svg width="0" height="0" style="position:absolute;">
-        <defs>
-            <mask id="stamp-scallop-mask" maskContentUnits="objectBoundingBox">
-                <rect x="0" y="0" width="1" height="1" fill="white"/>
-                <circle cx="0.0625" cy="0" r="0.035" fill="black"/>
-                <circle cx="0.1875" cy="0" r="0.035" fill="black"/>
-                <circle cx="0.3125" cy="0" r="0.035" fill="black"/>
-                <circle cx="0.4375" cy="0" r="0.035" fill="black"/>
-                <circle cx="0.5625" cy="0" r="0.035" fill="black"/>
-                <circle cx="0.6875" cy="0" r="0.035" fill="black"/>
-                <circle cx="0.8125" cy="0" r="0.035" fill="black"/>
-                <circle cx="0.9375" cy="0" r="0.035" fill="black"/>
-                <circle cx="0.0625" cy="1" r="0.035" fill="black"/>
-                <circle cx="0.1875" cy="1" r="0.035" fill="black"/>
-                <circle cx="0.3125" cy="1" r="0.035" fill="black"/>
-                <circle cx="0.4375" cy="1" r="0.035" fill="black"/>
-                <circle cx="0.5625" cy="1" r="0.035" fill="black"/>
-                <circle cx="0.6875" cy="1" r="0.035" fill="black"/>
-                <circle cx="0.8125" cy="1" r="0.035" fill="black"/>
-                <circle cx="0.9375" cy="1" r="0.035" fill="black"/>
-                <circle cx="0" cy="0.0625" r="0.035" fill="black"/>
-                <circle cx="0" cy="0.1875" r="0.035" fill="black"/>
-                <circle cx="0" cy="0.3125" r="0.035" fill="black"/>
-                <circle cx="0" cy="0.4375" r="0.035" fill="black"/>
-                <circle cx="0" cy="0.5625" r="0.035" fill="black"/>
-                <circle cx="0" cy="0.6875" r="0.035" fill="black"/>
-                <circle cx="0" cy="0.8125" r="0.035" fill="black"/>
-                <circle cx="0" cy="0.9375" r="0.035" fill="black"/>
-                <circle cx="1" cy="0.0625" r="0.035" fill="black"/>
-                <circle cx="1" cy="0.1875" r="0.035" fill="black"/>
-                <circle cx="1" cy="0.3125" r="0.035" fill="black"/>
-                <circle cx="1" cy="0.4375" r="0.035" fill="black"/>
-                <circle cx="1" cy="0.5625" r="0.035" fill="black"/>
-                <circle cx="1" cy="0.6875" r="0.035" fill="black"/>
-                <circle cx="1" cy="0.8125" r="0.035" fill="black"/>
-                <circle cx="1" cy="0.9375" r="0.035" fill="black"/>
-            </mask>
-        </defs>
-    </svg>
-
     <div class="content-container">
 
         <div id="panel-calendar" class="tab-panel active">
@@ -1311,6 +1284,11 @@
             '슬픔': '#cfe8ff'    /* 파랑 */
         };
 
+        const emotionEmojis = {
+            '평온': '😌', '기쁨': '😊', '스트레스': '😣', '걱정': '😟',
+            '피곤': '😪', '지루': '😑', '신남': '🤩', '슬픔': '😢'
+        };
+
         window.onload = function() {
             renderCalendar();
             renderWeeklyTodos();
@@ -1325,7 +1303,7 @@
         function renderEmotionPicker() {
             const picker = document.getElementById('emotion-picker');
             picker.innerHTML = Object.keys(emotionColors).map(emotion => `
-                <div class="emotion-chip" data-emotion="${emotion}" style="background-color:${emotionColors[emotion]};" onclick="selectEmotion('${emotion}')">${emotion}</div>
+                <div class="emotion-chip" data-emotion="${emotion}" style="background-color:${emotionColors[emotion]};" onclick="selectEmotion('${emotion}')">${emotionEmojis[emotion]} ${emotion}</div>
             `).join('');
             updateEmotionPickerUI();
         }
@@ -1414,6 +1392,8 @@
                     
                     // [띠부띠부씰 방식 렌더링] 원형이 아니라 사진의 형태를 유지하여 배치
                     if (plannerData[dateStr].image) {
+                        dayDiv.classList.add('has-photo');
+
                         const imgContainer = document.createElement('div');
                         imgContainer.classList.add('sticker-img-container');
 
@@ -1437,7 +1417,71 @@
             }
             renderWeeklyTodos();
             renderMonthEmotionSummary(year, month);
+            applyStampClipToAll();
         }
+
+        // 사진에 우표 톱니(퍼포레이션) 모양을 실제 렌더링 픽셀 크기에 맞춰 정확한 원형으로 잘라냄
+        // (% 기반 마스크는 칸의 가로세로 비율에 따라 톱니가 찌그러지므로, 실측 px로 SVG path를 직접 계산)
+        function buildStampPath(w, h, r, spacing) {
+            const nTop = Math.max(2, Math.round(w / spacing));
+            const nBottom = nTop;
+            const nSide = Math.max(2, Math.round(h / spacing));
+
+            const topStep = w / nTop;
+            const bottomStep = w / nBottom;
+            const sideStep = h / nSide;
+
+            let d = `M 0 0`;
+
+            // 위쪽 (왼쪽 → 오른쪽)
+            for (let i = 0; i < nTop; i++) {
+                const cx = topStep * (i + 0.5);
+                d += ` L ${(cx - r).toFixed(2)} 0 A ${r} ${r} 0 0 0 ${(cx + r).toFixed(2)} 0`;
+            }
+            d += ` L ${w} 0`;
+
+            // 오른쪽 (위 → 아래)
+            for (let i = 0; i < nSide; i++) {
+                const cy = sideStep * (i + 0.5);
+                d += ` L ${w} ${(cy - r).toFixed(2)} A ${r} ${r} 0 0 0 ${w} ${(cy + r).toFixed(2)}`;
+            }
+            d += ` L ${w} ${h}`;
+
+            // 아래쪽 (오른쪽 → 왼쪽)
+            for (let i = nBottom - 1; i >= 0; i--) {
+                const cx = bottomStep * (i + 0.5);
+                d += ` L ${(cx + r).toFixed(2)} ${h} A ${r} ${r} 0 0 0 ${(cx - r).toFixed(2)} ${h}`;
+            }
+            d += ` L 0 ${h}`;
+
+            // 왼쪽 (아래 → 위)
+            for (let i = nSide - 1; i >= 0; i--) {
+                const cy = sideStep * (i + 0.5);
+                d += ` L 0 ${(cy + r).toFixed(2)} A ${r} ${r} 0 0 0 0 ${(cy - r).toFixed(2)}`;
+            }
+            d += ` Z`;
+
+            return d;
+        }
+
+        function applyStampClipToAll() {
+            document.querySelectorAll('.sticker-img-container').forEach(el => {
+                const w = el.offsetWidth;
+                const h = el.offsetHeight;
+                if (w < 4 || h < 4) return;
+                const path = buildStampPath(w, h, 3, 11);
+                const clip = `path('${path}')`;
+                el.style.clipPath = clip;
+                el.style.webkitClipPath = clip;
+            });
+        }
+
+        // 화면 크기가 바뀌면(모바일 회전, 창 크기 조절 등) 톱니도 다시 계산
+        let stampResizeTimer = null;
+        window.addEventListener('resize', () => {
+            clearTimeout(stampResizeTimer);
+            stampResizeTimer = setTimeout(applyStampClipToAll, 150);
+        });
 
         // 이번 달에 기록된 감정별 개수를 우측 하단에 스코어로 표시
         function renderMonthEmotionSummary(year, month) {
@@ -1464,7 +1508,7 @@
             }
 
             summaryEl.innerHTML = entries.map(({ emotion, count }) => `
-                <span class="emotion-score-chip" style="background-color:${emotionColors[emotion]};">${emotion} ${count}</span>
+                <span class="emotion-score-chip" style="background-color:${emotionColors[emotion]};">${emotionEmojis[emotion]} ${count}</span>
             `).join('');
         }
 
