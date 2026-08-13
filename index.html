@@ -169,20 +169,6 @@
 
         /* [요청 반영] 사진이 있는 날짜에도 동그라미가 생겨 보였던 흰 원형 배경 제거 - 동그라미는 오늘 날짜에만 존재 */
 
-        .day-cell.today .day-number {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--accent-color);
-            color: #ffffff;
-            border-radius: 50%;
-            width: 17px;
-            height: 17px;
-            padding: 0;
-            font-size: 0.62rem;
-            line-height: 1;
-        }
-
         .day-number {
             font-size: 0.75rem;
             font-weight: 600;
@@ -191,6 +177,22 @@
             align-self: flex-start; /* 날짜 숫자는 좌측 상단에 단정하게 안착 */
             position: relative;
             z-index: 2; /* 사진보다 항상 위에 표시되어 가려지지 않도록 함 */
+            height: 17px;
+            line-height: 17px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* [요청 반영] 사진이 있는 날짜에도 동그라미가 생겨 보였던 흰 원형 배경 제거 - 동그라미는 오늘 날짜에만 존재
+           일반 날짜와 박스 높이(17px)를 동일하게 맞춰서 오늘 날짜만 아래로 밀려 보이지 않도록 함 */
+        .day-cell.today .day-number {
+            justify-content: center;
+            background: var(--accent-color);
+            color: #ffffff;
+            border-radius: 50%;
+            width: 17px;
+            padding: 0;
+            font-size: 0.62rem;
         }
 
         /* [우표 스타일 렌더러] 사진 테두리에 우표 특유의 얇은 톱니(퍼포레이션)를 실제로 잘라냅니다.
@@ -211,6 +213,15 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.14);
             z-index: 1;
             /* 톱니(퍼포레이션) 모양은 JS에서 실제 렌더링 픽셀 크기를 계산해 clip-path로 그려 넣음 (applyStampClip 함수) */
+        }
+
+        /* 모바일 화면에서는 날짜 숫자 공간만 남기고 사진 영역을 위로 더 넓게 확장 */
+        @media (max-width: 480px) {
+            .sticker-img-container {
+                top: 22px;
+                width: 90%;
+                padding: 5px;
+            }
         }
 
         .sticker-img {
@@ -290,6 +301,16 @@
         .todo-row .todo-text-input::placeholder {
             font-weight: 400;
             color: var(--text-muted);
+        }
+
+        /* [요청반영] "할 일을 입력하세요" 문구 대신 밑줄 하나로 입력 위치를 안내 */
+        .todo-row-new .todo-text-input {
+            border-bottom: 1.5px solid #e5e1d9;
+            padding-bottom: 5px;
+        }
+
+        .todo-row-new .todo-text-input:focus {
+            border-bottom-color: var(--accent-color);
         }
 
         .todo-text-input.completed {
@@ -1266,6 +1287,7 @@
             loadDayData(selectedDateStr);
             updateWriteTitle();
             initSwipeEvents();
+            setTimeout(applyStampClipToAll, 200); // 초기 레이아웃이 완전히 자리잡은 뒤 한 번 더 보정
         };
 
         // 감정 칩 목록을 emotionColors 순서대로 생성 (각 칩은 자기 감정 색을 항상 띔)
@@ -1301,6 +1323,11 @@
 
             if(btnElement) {
                 btnElement.classList.add('active');
+            }
+
+            if (tabId === 'calendar') {
+                // 탭이 다시 보이는 시점에 실제 렌더링 크기로 톱니 모양을 재계산 (PC/모바일 화면 차이 보정)
+                requestAnimationFrame(applyStampClipToAll);
             }
         }
 
@@ -1734,7 +1761,7 @@
             newLi.classList.add('todo-row', 'todo-row-new');
             newLi.innerHTML = `
                 <input type="checkbox" class="todo-checkbox" disabled>
-                <input type="text" class="todo-text-input" placeholder="할 일을 입력하세요..." onkeydown="handleWeeklyNewKeydown(event, '${storageKey}', ${weekIndex})" onblur="handleWeeklyNewBlur(event, '${storageKey}', ${weekIndex})">
+                <input type="text" class="todo-text-input" onkeydown="handleWeeklyNewKeydown(event, '${storageKey}', ${weekIndex})" onblur="handleWeeklyNewBlur(event, '${storageKey}', ${weekIndex})">
             `;
             listEl.appendChild(newLi);
         }
@@ -1821,7 +1848,7 @@
             newLi.classList.add('todo-row', 'todo-row-new');
             newLi.innerHTML = `
                 <input type="checkbox" class="todo-checkbox" disabled>
-                <input type="text" class="todo-text-input" placeholder="할 일을 입력하세요..." onkeydown="handleDailyNewKeydown(event)" onblur="handleDailyNewBlur(event)">
+                <input type="text" class="todo-text-input" onkeydown="handleDailyNewKeydown(event)" onblur="handleDailyNewBlur(event)">
             `;
             listEl.appendChild(newLi);
         }
