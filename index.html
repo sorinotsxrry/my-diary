@@ -61,6 +61,16 @@
             display: block; /* 활성화된 패널만 노출 */
         }
 
+        /* 모바일 화면에서는 좌우 여백을 살짝 줄여 달력 칸이 더 크게 보이도록 함 */
+        @media (max-width: 480px) {
+            .content-container {
+                padding: 10px 8px 100px 8px;
+            }
+            .tab-panel {
+                padding: 14px 10px;
+            }
+        }
+
         /* 공통 헤더 스타일 */
         .view-title {
             font-size: 1.4rem;
@@ -132,13 +142,13 @@
             border-right: 1px solid #eae7e4;
             border-bottom: 1px solid #eae7e4;
             border-radius: 0;
-            padding: 6px;
+            padding: 7px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
             cursor: pointer;
-            aspect-ratio: 1 / 1.3; 
+            aspect-ratio: 1 / 1.45; 
             width: 100%;
             position: relative;
             overflow: hidden; /* 이미지 오버헤드 찌그러짐 방지 */
@@ -153,34 +163,24 @@
         .day-cell-empty {
             border-right: 1px solid #eae7e4;
             border-bottom: 1px solid #eae7e4;
-            aspect-ratio: 1 / 1.3;
+            aspect-ratio: 1 / 1.45;
             width: 100%;
         }
 
-        /* 사진이 있는 날짜는 숫자 뒤에 옅은 흰 원을 깔아 사진 위에서도 잘 읽히게 함 (원형 통일) */
-        .day-cell.has-photo .day-number {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
+        /* [요청 반영] 사진이 있는 날짜에도 동그라미가 생겨 보였던 흰 원형 배경 제거 - 동그라미는 오늘 날짜에만 존재 */
+
+        .day-cell.today .day-number {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0;
-        }
-
-        .day-cell.today .day-number {
             background: var(--accent-color);
             color: #ffffff;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            line-height: 1;
+            width: 17px;
+            height: 17px;
             padding: 0;
+            font-size: 0.62rem;
+            line-height: 1;
         }
 
         .day-number {
@@ -202,7 +202,7 @@
             bottom: 4px;
             left: 50%;
             transform: translateX(-50%);
-            width: 84%;
+            width: 88%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -244,85 +244,58 @@
             gap: 6px;
         }
 
-        .todo-input-group {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .todo-input-group input[type="text"] {
-            flex: 1;
-            height: 38px;
-            padding: 0 12px;
-            border: 1px solid #eae7e4;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            outline: none;
-            box-sizing: border-box;
-        }
-
-        .todo-input-group button {
-            background: var(--text-main);
-            color: white;
-            border: none;
-            width: 38px;
-            height: 38px;
-            padding: 0;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
         .todo-list {
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 10px;
         }
 
-        .todo-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.95rem;
-            background: #fcfbfa;
-            padding: 12px 14px;
-            border-radius: 12px;
-            border: 1px solid #f2efeb;
-        }
-
-        .todo-text {
+        /* [요청반영] 아이폰 메모장 체크리스트처럼: 체크박스 + 입력줄이 한 줄로, 입력하면 바로 아래 새 줄이 생김 */
+        .todo-row {
             display: flex;
             align-items: center;
             gap: 10px;
+            padding: 7px 2px;
+        }
+
+        .todo-checkbox {
+            width: 19px;
+            height: 19px;
+            flex-shrink: 0;
+            accent-color: var(--accent-color);
             cursor: pointer;
+        }
+
+        .todo-row-new .todo-checkbox {
+            opacity: 0.35;
+            cursor: default;
+        }
+
+        .todo-row .todo-text-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 0.92rem;
             font-weight: 600;
+            color: var(--text-main);
+            outline: none;
+            padding: 4px 0;
+            height: auto;
+            -webkit-appearance: none;
+            appearance: none;
+            border-radius: 0;
+            box-shadow: none;
         }
 
-        .todo-text .material-symbols-rounded {
-            font-size: 21px !important;
-            color: var(--accent-color);
+        .todo-row .todo-text-input::placeholder {
+            font-weight: 400;
+            color: var(--text-muted);
         }
 
-        .todo-text.completed {
+        .todo-text-input.completed {
             text-decoration: line-through;
             color: var(--text-muted);
             font-weight: 400;
-        }
-
-        .todo-text.completed .material-symbols-rounded {
-            color: var(--text-muted);
-        }
-
-        .todo-delete {
-            cursor: pointer;
-            color: #e57373;
-            font-size: 0.8rem;
         }
 
         /* --- 3. 다이어리 기록창 스타일 --- */
@@ -1143,10 +1116,6 @@
             <div class="form-group">
                 <label>✅ To Do List</label>
                 <div class="daily-todo-container">
-                    <div class="todo-input-group">
-                        <input type="text" id="daily-todo-input" placeholder="오늘 할 일을 입력하세요...">
-                        <button onclick="addDailyTodo()">+</button>
-                    </div>
                     <ul class="todo-list" id="daily-todo-list"></ul>
                 </div>
             </div>
@@ -1656,12 +1625,14 @@
                 selectedDateStr = getTodayStr();
             }
 
-            const dailyTodos = [];
-            document.querySelectorAll('#daily-todo-list .todo-item').forEach((li) => {
-                const text = li.querySelector('.todo-text span:last-child').innerText;
-                const completed = li.querySelector('.todo-text').classList.contains('completed');
-                dailyTodos.push({ text: text, completed: completed });
-            });
+            const dailyTodos = (plannerData[selectedDateStr] && plannerData[selectedDateStr].dailyTodos)
+                ? plannerData[selectedDateStr].dailyTodos.slice()
+                : [];
+            // 아직 엔터를 누르지 않은, 입력 중이던 마지막 줄의 텍스트도 놓치지 않고 함께 저장
+            const pendingInput = document.querySelector('#daily-todo-list .todo-row-new .todo-text-input');
+            if (pendingInput && pendingInput.value.trim()) {
+                dailyTodos.push({ text: pendingInput.value.trim(), completed: false });
+            }
 
             plannerData[selectedDateStr] = {
                 image: base64ImageStr,
@@ -1735,10 +1706,6 @@
                     <div class="week-title">
                         Week ${w.weekIndex} (${monthNum}/${w.startDay} - ${monthNum}/${w.endDay})
                     </div>
-                    <div class="todo-input-group">
-                        <input type="text" id="input-week-${w.weekIndex}" placeholder="할 일을 입력하세요...">
-                        <button onclick="addWeeklyTodo('${storageKey}', ${w.weekIndex})">+</button>
-                    </div>
                     <ul class="todo-list" id="list-week-${w.weekIndex}"></ul>
                 `;
                 container.appendChild(card);
@@ -1754,32 +1721,69 @@
             const items = weeklyTodoData[storageKey] || [];
             items.forEach((item, idx) => {
                 const li = document.createElement('li');
-                li.classList.add('todo-item');
+                li.classList.add('todo-row');
                 li.innerHTML = `
-                    <div class="todo-text ${item.completed ? 'completed' : ''}" onclick="toggleWeeklyTodo('${storageKey}', ${idx}, ${weekIndex})">
-                        <span class="material-symbols-rounded" style="font-size: 18px;">
-                            ${item.completed ? 'check_box' : 'check_box_outline_blank'}
-                        </span>
-                        <span>${item.text}</span>
-                    </div>
-                    <span class="material-symbols-rounded todo-delete" onclick="deleteWeeklyTodo('${storageKey}', ${idx}, ${weekIndex})">delete</span>
+                    <input type="checkbox" class="todo-checkbox" ${item.completed ? 'checked' : ''} onchange="toggleWeeklyTodo('${storageKey}', ${idx}, ${weekIndex})">
+                    <input type="text" class="todo-text-input ${item.completed ? 'completed' : ''}" value="${escapeAttr(item.text)}" oninput="updateWeeklyTodoText('${storageKey}', ${idx}, this.value)" onkeydown="handleWeeklyTodoKeydown(event, '${storageKey}', ${weekIndex})" onblur="handleWeeklyTodoBlur(event, '${storageKey}', ${idx}, ${weekIndex})">
                 `;
                 listEl.appendChild(li);
             });
+
+            // 항상 마지막엔 새 항목을 바로 입력할 수 있는 빈 줄이 대기 (아이폰 메모장 체크리스트 방식)
+            const newLi = document.createElement('li');
+            newLi.classList.add('todo-row', 'todo-row-new');
+            newLi.innerHTML = `
+                <input type="checkbox" class="todo-checkbox" disabled>
+                <input type="text" class="todo-text-input" placeholder="할 일을 입력하세요..." onkeydown="handleWeeklyNewKeydown(event, '${storageKey}', ${weekIndex})" onblur="handleWeeklyNewBlur(event, '${storageKey}', ${weekIndex})">
+            `;
+            listEl.appendChild(newLi);
         }
 
-        function addWeeklyTodo(storageKey, weekIndex) {
-            const input = document.getElementById(`input-week-${weekIndex}`);
-            const text = input.value.trim();
-            if(!text) return;
+        function updateWeeklyTodoText(storageKey, idx, value) {
+            if (weeklyTodoData[storageKey] && weeklyTodoData[storageKey][idx]) {
+                weeklyTodoData[storageKey][idx].text = value;
+                localStorage.setItem('weeklyTodoData', JSON.stringify(weeklyTodoData));
+            }
+        }
 
-            if(!weeklyTodoData[storageKey]) {
+        function handleWeeklyTodoKeydown(e, storageKey, weekIndex) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                focusLastTodoInput(`list-week-${weekIndex}`);
+            }
+        }
+
+        function handleWeeklyTodoBlur(e, storageKey, idx, weekIndex) {
+            const text = e.target.value.trim();
+            if (!text) {
+                deleteWeeklyTodo(storageKey, idx, weekIndex);
+            }
+        }
+
+        function handleWeeklyNewKeydown(e, storageKey, weekIndex) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const value = e.target.value;
+                e.target.value = '';
+                commitNewWeeklyTodo(storageKey, weekIndex, value);
+            }
+        }
+
+        function handleWeeklyNewBlur(e, storageKey, weekIndex) {
+            commitNewWeeklyTodo(storageKey, weekIndex, e.target.value);
+        }
+
+        function commitNewWeeklyTodo(storageKey, weekIndex, value) {
+            const text = value.trim();
+            if (!text) return;
+
+            if (!weeklyTodoData[storageKey]) {
                 weeklyTodoData[storageKey] = [];
             }
             weeklyTodoData[storageKey].push({ text: text, completed: false });
             localStorage.setItem('weeklyTodoData', JSON.stringify(weeklyTodoData));
-            input.value = '';
             renderWeeklyList(storageKey, weekIndex);
+            focusLastTodoInput(`list-week-${weekIndex}`);
         }
 
         function toggleWeeklyTodo(storageKey, idx, weekIndex) {
@@ -1804,24 +1808,60 @@
 
             items.forEach((item, index) => {
                 const li = document.createElement('li');
-                li.classList.add('todo-item');
+                li.classList.add('todo-row');
                 li.innerHTML = `
-                    <div class="todo-text ${item.completed ? 'completed' : ''}" onclick="toggleDailyTodo(${index})">
-                        <span class="material-symbols-rounded" style="font-size: 18px;">
-                            ${item.completed ? 'check_box' : 'check_box_outline_blank'}
-                        </span>
-                        <span>${item.text}</span>
-                    </div>
-                    <span class="material-symbols-rounded todo-delete" onclick="deleteDailyTodo(${index})">delete</span>
+                    <input type="checkbox" class="todo-checkbox" ${item.completed ? 'checked' : ''} onchange="toggleDailyTodo(${index})">
+                    <input type="text" class="todo-text-input ${item.completed ? 'completed' : ''}" value="${escapeAttr(item.text)}" oninput="updateDailyTodoText(${index}, this.value)" onkeydown="handleDailyTodoKeydown(event)" onblur="handleDailyTodoBlur(event, ${index})">
                 `;
                 listEl.appendChild(li);
             });
+
+            // 항상 마지막엔 새 항목을 바로 입력할 수 있는 빈 줄이 대기 (아이폰 메모장 체크리스트 방식)
+            const newLi = document.createElement('li');
+            newLi.classList.add('todo-row', 'todo-row-new');
+            newLi.innerHTML = `
+                <input type="checkbox" class="todo-checkbox" disabled>
+                <input type="text" class="todo-text-input" placeholder="할 일을 입력하세요..." onkeydown="handleDailyNewKeydown(event)" onblur="handleDailyNewBlur(event)">
+            `;
+            listEl.appendChild(newLi);
         }
 
-        function addDailyTodo() {
-            const input = document.getElementById('daily-todo-input');
-            const text = input.value.trim();
-            if(!text) return;
+        function updateDailyTodoText(index, value) {
+            if (plannerData[selectedDateStr] && plannerData[selectedDateStr].dailyTodos && plannerData[selectedDateStr].dailyTodos[index]) {
+                plannerData[selectedDateStr].dailyTodos[index].text = value;
+            }
+        }
+
+        function handleDailyTodoKeydown(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                focusLastTodoInput('daily-todo-list');
+            }
+        }
+
+        function handleDailyTodoBlur(e, index) {
+            const text = e.target.value.trim();
+            if (!text) {
+                deleteDailyTodo(index);
+            }
+        }
+
+        function handleDailyNewKeydown(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const value = e.target.value;
+                e.target.value = '';
+                commitNewDailyTodo(value);
+            }
+        }
+
+        function handleDailyNewBlur(e) {
+            commitNewDailyTodo(e.target.value);
+        }
+
+        function commitNewDailyTodo(value) {
+            const text = value.trim();
+            if (!text) return;
 
             if (!plannerData[selectedDateStr]) {
                 plannerData[selectedDateStr] = {
@@ -1833,8 +1873,8 @@
             }
 
             plannerData[selectedDateStr].dailyTodos.push({ text: text, completed: false });
-            input.value = '';
             renderDailyTodos();
+            focusLastTodoInput('daily-todo-list');
         }
 
         function toggleDailyTodo(index) {
@@ -1851,6 +1891,24 @@
             }
         }
 
+        // 리스트 안에서 마지막(새 입력용) 줄로 포커스를 옮겨줌
+        function focusLastTodoInput(listId) {
+            const listEl = document.getElementById(listId);
+            if (!listEl) return;
+            const inputs = listEl.querySelectorAll('.todo-text-input');
+            if (inputs.length) {
+                inputs[inputs.length - 1].focus();
+            }
+        }
+
+        // 할 일 텍스트를 안전하게 HTML 속성에 삽입하기 위한 이스케이프 처리
+        function escapeAttr(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
 
         /* --- 📚 [Book List 제어 엔진] --- */
 
