@@ -580,6 +580,10 @@
             font-weight: bold;
             font-size: 0.95rem;
             margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
         /* --- 📚 Book List 스타일 (버튼 디자인 & 위치 전면 수정 보존) --- */
@@ -949,6 +953,14 @@
             transform: translateY(0);
         }
 
+        /* 저장 완료 팝업 - 가운데 정렬, 탭하면 다음 단계(오늘의 명언)로 넘어감 */
+        .save-modal-content {
+            max-width: 320px;
+            text-align: center;
+            padding: 34px 26px;
+            cursor: pointer;
+        }
+
         .modal-close-btn {
             position: absolute;
             top: 15px;
@@ -1249,7 +1261,17 @@
                 </div>
             </div>
 
-            <button class="btn-save" onclick="saveData()">다이어리 저장하기</button>
+            <button class="btn-save" onclick="saveData()">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+                    <mask id="save-icon-mask">
+                        <rect x="0" y="0" width="24" height="24" fill="white"/>
+                        <rect x="10.5" y="3.2" width="3" height="6.3" fill="black"/>
+                        <rect x="7" y="13.5" width="10" height="7.5" rx="1" fill="black"/>
+                    </mask>
+                    <path d="M4.2 3 H16.5 L20 6.5 V19.8 A1.2 1.2 0 0 1 18.8 21 H4.2 A1.2 1.2 0 0 1 3 19.8 V4.2 A1.2 1.2 0 0 1 4.2 3 Z" fill="#ffffff" mask="url(#save-icon-mask)"/>
+                </svg>
+                저장하기
+            </button>
         </div>
 
     </div>
@@ -1349,6 +1371,12 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="save-success-modal" onclick="handleSaveModalClick()">
+        <div class="modal-content save-modal-content">
+            <div id="save-modal-body"></div>
+        </div>
+    </div>
+
     <script>
         // 전역 날짜 기본 세팅 (오늘 날짜 기준)
         function formatDateStr(d) {
@@ -1404,7 +1432,9 @@
         const emotionDarkBg = { '분노': true };
         // 미리 정의되지 않은, 직접 입력한 감정에 쓸 기본 색상/이모지
         const CUSTOM_EMOTION_COLOR = '#ece7dd';
-        const CUSTOM_EMOTION_EMOJI = '📝';
+        const CUSTOM_EMOTION_EMOJI = '😐';
+        // 직접 입력 칸을 클릭/포커스만 해도 즉시 선택된 것처럼 보이게 하는 상태 플래그
+        let customEmotionPending = false;
 
         // 배경색이 어두운지 밝기로 판단해서, 직접 고른 커스텀 색에도 자동으로 글자색 대비를 맞춰줌
         function isColorDark(hex) {
@@ -1425,10 +1455,10 @@
             `).join('');
             // 직접 입력 칸도 다른 감정 칩과 똑같은 프레임(알약 모양)을 쓰되, 아주 옅은 회색 고정 배경 + 이모지는 '?'
             html += `
-                <div class="emotion-chip emotion-custom-row" id="emotion-custom-row" style="background-color:#f1efe9;" onclick="document.getElementById('emotion-custom-input').focus()">
-                    <input type="text" id="emotion-custom-emoji" class="emotion-custom-emoji-input" value="❓" maxlength="4" oninput="handleCustomEmotionEmoji(this.value)" onclick="event.stopPropagation()">
-                    <input type="text" id="emotion-custom-input" class="emotion-custom-text" maxlength="8" oninput="handleCustomEmotionInput(this.value)" onkeydown="handleCustomEmotionKeydown(event)" onclick="event.stopPropagation()">
-                    <input type="color" id="emotion-custom-color" class="emotion-custom-color" value="#d8cfc4" oninput="handleCustomEmotionColor(this.value)" onclick="event.stopPropagation()">
+                <div class="emotion-chip emotion-custom-row" id="emotion-custom-row" style="background-color:#f1efe9;" onclick="activateCustomEmotion()">
+                    <input type="text" id="emotion-custom-emoji" class="emotion-custom-emoji-input" value="😐" maxlength="4" oninput="handleCustomEmotionEmoji(this.value)" onfocus="activateCustomEmotion()" onclick="event.stopPropagation()">
+                    <input type="text" id="emotion-custom-input" class="emotion-custom-text" maxlength="8" oninput="handleCustomEmotionInput(this.value)" onkeydown="handleCustomEmotionKeydown(event)" onfocus="activateCustomEmotion()" onblur="handleCustomEmotionTextBlur(event)" onclick="event.stopPropagation()">
+                    <input type="color" id="emotion-custom-color" class="emotion-custom-color" value="#d8cfc4" oninput="handleCustomEmotionColor(this.value)" onfocus="activateCustomEmotion()" onclick="event.stopPropagation()">
                 </div>
             `;
             picker.innerHTML = html;
@@ -1438,16 +1468,29 @@
         // 감정 칩 클릭 시 선택값 갱신
         function selectEmotion(emotion) {
             document.getElementById('diary-emotion').value = emotion;
+            customEmotionPending = false; // 정해진 감정을 고르면 직접 입력 칸의 '선택됨' 상태도 해제
             const customText = document.getElementById('emotion-custom-input');
             if (customText) customText.value = ''; // 정해진 감정을 고르면 직접 입력줄은 비워줌
             updateEmotionPickerUI();
         }
 
+        // [요청반영] 직접 입력 칸은 텍스트를 쓰지 않아도 클릭(포커스)만 하면 바로 선택된 것처럼 반응
+        function activateCustomEmotion() {
+            const current = document.getElementById('diary-emotion').value;
+            if (current && emotionColors[current]) {
+                // 정해진 감정이 선택돼 있었다면 그 선택은 해제 (이미 입력해둔 커스텀 텍스트는 그대로 유지)
+                document.getElementById('diary-emotion').value = '';
+            }
+            customEmotionPending = true;
+            updateEmotionPickerUI();
+            document.getElementById('emotion-custom-input').focus();
+        }
+
         // 직접 입력줄에 타이핑하는 즉시 그 텍스트를 선택된 감정으로 반영
         function handleCustomEmotionInput(value) {
             const text = value.trim();
+            document.getElementById('diary-emotion').value = text; // 비어있으면 빈 값으로, 있으면 그 텍스트로 항상 동기화
             if (text) {
-                document.getElementById('diary-emotion').value = text;
                 // 색/이모지를 아직 안 고른 상태라면 현재 기본값을 그대로 적용
                 const colorInput = document.getElementById('emotion-custom-color');
                 if (colorInput && !document.getElementById('diary-emotion-color').value) {
@@ -1457,14 +1500,22 @@
                 if (emojiInput && !document.getElementById('diary-emotion-emoji').value) {
                     document.getElementById('diary-emotion-emoji').value = emojiInput.value || CUSTOM_EMOTION_EMOJI;
                 }
-                updateEmotionPickerUI();
             }
+            updateEmotionPickerUI();
         }
 
         function handleCustomEmotionKeydown(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 e.target.blur();
+            }
+        }
+
+        // 직접 입력 칸에서 아무것도 안 쓰고 벗어나면 '선택됨' 상태를 해제
+        function handleCustomEmotionTextBlur(e) {
+            if (!e.target.value.trim()) {
+                customEmotionPending = false;
+                updateEmotionPickerUI();
             }
         }
 
@@ -1499,15 +1550,16 @@
             const customText = document.getElementById('emotion-custom-input');
             const customColor = document.getElementById('emotion-custom-color');
             const customEmoji = document.getElementById('emotion-custom-emoji');
-            const isCustomSelected = !!current && !emotionColors[current];
+            const isCustomValue = !!current && !emotionColors[current]; // 실제로 직접 입력한 값이 선택돼 있는 상태
+            const isCustomSelected = customEmotionPending || isCustomValue; // 프레임 강조는 클릭만 해도 즉시 반응
 
             if (customRow) customRow.classList.toggle('selected', isCustomSelected);
 
             if (customText) {
                 // 다른 날짜 데이터를 불러올 때는 입력줄에 그 값을 채워주되, 지금 타이핑 중이면 방해하지 않음
-                if (isCustomSelected && document.activeElement !== customText) {
+                if (isCustomValue && document.activeElement !== customText) {
                     customText.value = current;
-                } else if (!isCustomSelected && document.activeElement !== customText) {
+                } else if (!isCustomValue && document.activeElement !== customText) {
                     customText.value = '';
                 }
             }
@@ -1844,6 +1896,7 @@
         function loadDayData(dateStr) {
             const data = plannerData[dateStr];
             const preview = document.getElementById('img-preview');
+            customEmotionPending = false; // 다른 날짜로 이동하면 직접 입력 대기 상태는 초기화
             
             if (data) {
                 document.getElementById('diary-weather').value = data.weather || '☀️ 맑음';
@@ -1897,26 +1950,98 @@
                 dailyTodos.push({ text: pendingInput.value.trim(), completed: false });
             }
 
+            const emotionVal = document.getElementById('diary-emotion').value || '평온'; // 직접 입력을 시작만 하고 아무것도 안 쓴 경우의 안전장치
+
             plannerData[selectedDateStr] = {
                 image: base64ImageStr,
                 weather: document.getElementById('diary-weather').value,
                 temp: document.getElementById('diary-temp').value,
                 place: document.getElementById('diary-place').value,
-                emotion: document.getElementById('diary-emotion').value,
-                emotionColor: emotionColors[document.getElementById('diary-emotion').value] ? '' : document.getElementById('diary-emotion-color').value,
-                emotionEmoji: emotionColors[document.getElementById('diary-emotion').value] ? '' : document.getElementById('diary-emotion-emoji').value,
+                emotion: emotionVal,
+                emotionColor: emotionColors[emotionVal] ? '' : document.getElementById('diary-emotion-color').value,
+                emotionEmoji: emotionColors[emotionVal] ? '' : document.getElementById('diary-emotion-emoji').value,
                 content: document.getElementById('diary-content').value,
                 dailyTodos: dailyTodos
             };
 
             try {
                 localStorage.setItem('plannerData', JSON.stringify(plannerData));
-                alert("다이어리가 정상적으로 저장되어 달력에 반영되었습니다! ✨");
-                renderCalendar();
-                switchTab('calendar', document.querySelector('.nav-item'));
+                openSaveSuccessModal();
             } catch (error) {
                 console.error(error);
                 alert("앗! 용량이 너무 커서 저장에 실패했습니다. 다른 사진으로 변경하시거나 텍스트 위주로 줄여주세요. 😢");
+            }
+        }
+
+        /* --- 💾 저장 완료 팝업 (1단계: 저장 완료 안내 → 2단계: 오늘의 명언) --- */
+        const DAILY_QUOTES = [
+            { text: "오늘 하루도 잘 버텨낸 당신, 그걸로 충분해요.", author: "" },
+            { text: "완벽하지 않아도 괜찮아요. 계속하고 있다는 게 중요해요.", author: "" },
+            { text: "작은 기록들이 모여 결국 나를 이해하는 힘이 됩니다.", author: "" },
+            { text: "오늘의 나에게: 애썼어, 정말 잘했어.", author: "" },
+            { text: "느려도 괜찮아요. 멈추지만 않으면 돼요.", author: "" },
+            { text: "지금 이 순간을 기록한다는 것, 그 자체로 용기예요.", author: "" },
+            { text: "당신의 하루는 생각보다 훨씬 가치 있었어요.", author: "" },
+            { text: "힘든 날도 결국 나를 단단하게 만들어줘요.", author: "" },
+            { text: "누구와도 비교하지 마세요. 어제의 나보다 나아가면 충분해요.", author: "" },
+            { text: "쉬어가는 것도 앞으로 나아가는 방법 중 하나예요.", author: "" },
+            { text: "당신은 이미 생각보다 훨씬 잘하고 있어요.", author: "" },
+            { text: "오늘 하루, 나를 미워하지 않고 잘 견뎌줘서 고마워요.", author: "" },
+            { text: "감정을 적는다는 건, 나를 더 잘 돌보고 있다는 뜻이에요.", author: "" },
+            { text: "다시 시작해도 괜찮아요. 매일이 새로운 기회니까요.", author: "" },
+            { text: "지치는 날엔 잠깐 멈춰도 돼요. 다시 걸으면 되니까요.", author: "" },
+            { text: "당신의 노력은 반드시 어딘가에 남아 있어요.", author: "" },
+            { text: "오늘 웃지 못했어도, 내일은 웃을 수 있어요.", author: "" },
+            { text: "가장 중요한 건 오늘도 당신이 버텼다는 사실이에요.", author: "" },
+            { text: "스스로에게 조금 더 다정해도 괜찮아요.", author: "" },
+            { text: "당신의 속도로 걸어가도 충분히 잘 가고 있는 거예요.", author: "" }
+        ];
+
+        // 오늘 날짜 기준으로 매일 다른(하지만 하루 동안은 같은) 명언을 골라줌
+        function getTodayQuote() {
+            const todayStr = getTodayStr();
+            let hash = 0;
+            for (let i = 0; i < todayStr.length; i++) {
+                hash = (hash * 31 + todayStr.charCodeAt(i)) % DAILY_QUOTES.length;
+            }
+            return DAILY_QUOTES[Math.abs(hash) % DAILY_QUOTES.length];
+        }
+
+        let saveModalStep = 1;
+
+        function openSaveSuccessModal() {
+            saveModalStep = 1;
+            renderSaveModalStep();
+            document.getElementById('save-success-modal').classList.add('active');
+        }
+
+        function renderSaveModalStep() {
+            const body = document.getElementById('save-modal-body');
+            if (saveModalStep === 1) {
+                body.innerHTML = `
+                    <div style="font-size: 2.4rem; margin-bottom: 10px;">✅</div>
+                    <div style="font-size: 1.05rem; font-weight: 800; margin-bottom: 8px;">저장이 완료되었습니다!</div>
+                    <div style="font-size: 0.78rem; color: var(--text-muted);">한 번 더 누르면 오늘의 명언을 볼 수 있어요 ✨</div>
+                `;
+            } else {
+                const quote = getTodayQuote();
+                body.innerHTML = `
+                    <div style="font-size: 1.8rem; margin-bottom: 10px;">💬</div>
+                    <div style="font-size: 0.72rem; font-weight: bold; color: var(--accent-color); margin-bottom: 12px; letter-spacing: 0.5px;">오늘의 명언</div>
+                    <div style="font-size: 0.98rem; font-weight: 700; line-height: 1.6; margin-bottom: 6px;">"${quote.text}"</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 16px;">탭하면 캘린더로 이동해요</div>
+                `;
+            }
+        }
+
+        function handleSaveModalClick() {
+            if (saveModalStep === 1) {
+                saveModalStep = 2;
+                renderSaveModalStep();
+            } else {
+                document.getElementById('save-success-modal').classList.remove('active');
+                renderCalendar();
+                switchTab('calendar', document.querySelector('.nav-item'));
             }
         }
 
